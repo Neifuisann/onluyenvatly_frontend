@@ -17,9 +17,15 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      // Redirect to login or refresh token
+      // Only redirect if we're not already on a public page
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const publicPaths = ['/', '/login', '/register', '/study-materials'];
+        const currentPath = window.location.pathname;
+        const isPublicPath = publicPaths.some(path => currentPath === path || currentPath.startsWith(path + '/'));
+        
+        if (!isPublicPath && !currentPath.includes('/auth/')) {
+          window.location.href = '/login';
+        }
       }
     }
     

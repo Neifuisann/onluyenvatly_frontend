@@ -49,8 +49,8 @@ export function Navbar() {
             </Link>
           </motion.div>
 
-          {/* Desktop Navigation Links - Added margin-left to create space */}
-          <div className="hidden md:flex items-center space-x-1 ml-8">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex flex-1 items-center justify-center space-x-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -75,41 +75,40 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Desktop Login Button / Avatar and Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            {isClient && (
-              <>
-                {user ? (
-                  <div className="hidden md:block">
-                    <AvatarMenu />
-                  </div>
-                ) : (
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="hidden md:block"
-                  >
-                    <Button asChild variant="default">
-                      <Link href="/login">Đăng nhập</Link>
-                    </Button>
-                  </motion.div>
-                )}
-              </>
-            )}
-
-            {/* Mobile Menu Button */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden flex-shrink-0"
-                  aria-label="Menu"
-                  data-testid="mobile-menu-button"
+          {/* Desktop Login Button / Avatar */}
+          {isClient && (
+            <>
+              {user ? (
+                <div className="hidden md:block">
+                  <AvatarMenu />
+                </div>
+              ) : (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hidden md:block"
                 >
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
+                  <Button asChild variant="default">
+                    <Link href="/login">Đăng nhập</Link>
+                  </Button>
+                </motion.div>
+              )}
+            </>
+          )}
+
+          {/* Mobile Menu Button */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden ml-2 flex-shrink-0"
+                aria-label="Menu"
+                data-testid="mobile-menu-button"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>

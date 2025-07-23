@@ -52,8 +52,23 @@ export const authApi = {
 
   // Check auth status
   checkAuth: async (): Promise<User> => {
-    const response = await apiClient.get('/auth/status');
-    return response.data;
+    const response = await apiClient.get('/auth/check');
+    const data = response.data.data;
+    
+    if (!data.authenticated) {
+      throw new Error('Not authenticated');
+    }
+    
+    // Transform backend response to frontend User type
+    return {
+      id: data.user.id || (data.user.type === 'admin' ? 1 : 0),
+      username: data.user.name || data.user.type,
+      full_name: data.user.name,
+      phone_number: data.user.phone_number,
+      email: data.user.email,
+      role: data.user.type as 'admin' | 'student',
+      isLoggedIn: true
+    };
   },
 
   // Logout
