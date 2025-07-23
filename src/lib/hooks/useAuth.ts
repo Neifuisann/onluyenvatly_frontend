@@ -41,7 +41,7 @@ export function useStudentLogin() {
       } catch (error) {
         console.warn('Encryption initialization failed, continuing without encryption:', error);
       }
-      router.push('/lessons');
+      // Don't redirect here - let the component handle it
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Login failed';
