@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Trophy, Users, Brain } from "lucide-react";
+import { motion } from "motion/react";
 
 export default function Home() {
   return (
@@ -9,31 +12,75 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <motion.h1 
+            className="text-5xl font-bold text-gray-900 mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             Ôn Luyện Vật Lý Lớp 12
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.6 }}
+          >
             Nền tảng học tập vật lý trực tuyến với bài giảng tương tác, 
             quiz thông minh và theo dõi tiến độ học tập
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild size="lg">
-              <Link href="/login">Bắt đầu học</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/register">Đăng ký miễn phí</Link>
-            </Button>
-          </div>
+          </motion.p>
+          <motion.div 
+            className="flex gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link href="/lessons">Bắt đầu học</Link>
+              </Button>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button asChild variant="outline" size="lg">
+                <Link href="/register">Đăng ký miễn phí</Link>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <motion.h2 
+            className="text-3xl font-bold text-center mb-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             Tính năng nổi bật
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          </motion.h2>
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, staggerChildren: 0.1 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
             <Card>
               <CardHeader>
                 <BookOpen className="h-10 w-10 text-blue-600 mb-2" />
@@ -46,7 +93,15 @@ export default function Home() {
                 </CardDescription>
               </CardContent>
             </Card>
+            </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
             <Card>
               <CardHeader>
                 <Brain className="h-10 w-10 text-green-600 mb-2" />
@@ -59,7 +114,15 @@ export default function Home() {
                 </CardDescription>
               </CardContent>
             </Card>
+            </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
             <Card>
               <CardHeader>
                 <Trophy className="h-10 w-10 text-yellow-600 mb-2" />
@@ -72,7 +135,15 @@ export default function Home() {
                 </CardDescription>
               </CardContent>
             </Card>
+            </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
             <Card>
               <CardHeader>
                 <Users className="h-10 w-10 text-purple-600 mb-2" />
@@ -85,22 +156,44 @@ export default function Home() {
                 </CardDescription>
               </CardContent>
             </Card>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="bg-gray-50 py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">
+          <motion.h2 
+            className="text-3xl font-bold mb-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
             Sẵn sàng nâng cao kiến thức Vật lý?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
+          </motion.h2>
+          <motion.p 
+            className="text-lg text-gray-600 mb-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
             Tham gia cùng hàng nghìn học sinh đang học tập hiệu quả trên nền tảng của chúng tôi
-          </p>
-          <Button asChild size="lg">
-            <Link href="/register">Đăng ký ngay</Link>
-          </Button>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Link href="/register">Đăng ký ngay</Link>
+            </Button>
+          </motion.div>
         </div>
       </section>
     </div>
