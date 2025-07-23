@@ -12,8 +12,12 @@ export function useAdminLogin() {
     mutationFn: (credentials: LoginCredentials) => authApi.adminLogin(credentials),
     onSuccess: async (data) => {
       setUser(data.user);
-      // Initialize encryption after successful login
-      await EncryptionService.initializeEncryption();
+      // Initialize encryption after successful login (optional)
+      try {
+        await EncryptionService.initializeEncryption();
+      } catch (error) {
+        console.warn('Encryption initialization failed, continuing without encryption:', error);
+      }
       router.push('/admin');
     },
     onError: (error: any) => {
@@ -31,8 +35,12 @@ export function useStudentLogin() {
     mutationFn: (credentials: LoginCredentials) => authApi.studentLogin(credentials),
     onSuccess: async (data) => {
       setUser(data.user);
-      // Initialize encryption after successful login
-      await EncryptionService.initializeEncryption();
+      // Initialize encryption after successful login (optional)
+      try {
+        await EncryptionService.initializeEncryption();
+      } catch (error) {
+        console.warn('Encryption initialization failed, continuing without encryption:', error);
+      }
       router.push('/lessons');
     },
     onError: (error: any) => {

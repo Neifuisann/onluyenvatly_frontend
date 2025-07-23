@@ -1,24 +1,13 @@
 import CryptoJS from 'crypto-js';
+import apiClient from '@/lib/api/client';
 
 export class EncryptionService {
   private static encryptionKey: string | null = null;
 
   static async initializeEncryption(): Promise<void> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encryption/init`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to initialize encryption');
-      }
-
-      const data = await response.json();
-      this.encryptionKey = data.key;
+      const response = await apiClient.post('/encryption/init');
+      this.encryptionKey = response.data.encryptionKey;
     } catch (error) {
       console.error('Error initializing encryption:', error);
       throw error;
