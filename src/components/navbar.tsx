@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
+import { AvatarMenu } from "@/components/ui/avatar-menu";
+import { useAuthStore } from "@/lib/stores/auth";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
@@ -19,6 +21,13 @@ const navItems = [
 export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, checkAuth } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <motion.nav
@@ -66,17 +75,27 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Desktop Login Button and Mobile Menu */}
+          {/* Desktop Login Button / Avatar and Mobile Menu */}
           <div className="flex items-center space-x-4 ml-auto">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden md:block"
-            >
-              <Button asChild variant="default">
-                <Link href="/login">Đăng nhập</Link>
-              </Button>
-            </motion.div>
+            {isClient && (
+              <>
+                {user ? (
+                  <div className="hidden md:block">
+                    <AvatarMenu />
+                  </div>
+                ) : (
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="hidden md:block"
+                  >
+                    <Button asChild variant="default">
+                      <Link href="/login">Đăng nhập</Link>
+                    </Button>
+                  </motion.div>
+                )}
+              </>
+            )}
 
             {/* Mobile Menu Button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -86,6 +105,7 @@ export function Navbar() {
                   size="icon"
                   className="md:hidden"
                   aria-label="Menu"
+                  data-testid="mobile-menu-button"
                 >
                   <Menu className="h-6 w-6" />
                 </Button>
@@ -94,32 +114,43 @@ export function Navbar() {
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 flex flex-col space-y-4">
-                  {navItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "px-4 py-3 rounded-md text-base font-medium transition-colors",
-                          isActive
-                            ? "bg-blue-100 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                  <div className="pt-4 border-t">
-                    <Button asChild variant="default" className="w-full">
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
-                        Đăng nhập
-                      </Link>
-                    </Button>
+                <div className="mt-6 flex flex-col">
+                  {/* Mobile navigation items */}
+                  <div className="space-y-4">
+                    {navItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className={cn(
+                            "px-4 py-3 rounded-md text-base font-medium transition-colors",
+                            isActive
+                              ? "bg-blue-100 text-blue-700"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                   </div>
+                  
+                  {/* Mobile auth section */}
+                  {isClient && (
+                    <div className="mt-4 pt-4 border-t">
+                      {user ? (
+                        <AvatarMenu isMobile />
+                      ) : (
+                        <Button asChild variant="default" className="w-full">
+                          <Link href="/login" onClick={() => setIsOpen(false)}>
+                            Đăng nhập
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
