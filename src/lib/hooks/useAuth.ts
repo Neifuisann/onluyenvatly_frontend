@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { authApi, LoginCredentials, RegisterData } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { EncryptionService } from '@/lib/crypto/encryption';
+import { clearCsrfToken } from '@/lib/api/client';
 
 export function useAdminLogin() {
   const router = useRouter();
@@ -76,9 +77,42 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: async () => {
-      await logout();
+      // Clear all client-side state first
       EncryptionService.clearKey();
-      router.push('/');
+      clearCsrfToken();
+
+      // Clear localStorage manually before logout call
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-storage');
+        sessionStorage.removeItem('auth-storage');
+      }
+
+      // Skip API call since we already called it above
+      await logout(true);
+
+      // Small delay to ensure state is cleared before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Use window.location.href to ensure full page reload and clear all state
+      window.location.href = '/';
+    },
+    onError: async () => {
+      // Even if logout API fails, clear local state
+      EncryptionService.clearKey();
+      clearCsrfToken();
+
+      // Clear localStorage manually
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-storage');
+        sessionStorage.removeItem('auth-storage');
+      }
+
+      await logout(true);
+
+      // Small delay to ensure state is cleared before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      window.location.href = '/';
     },
   });
 }

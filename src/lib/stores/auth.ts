@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { authApi, User } from '@/lib/api/auth';
 
 interface AuthState {
@@ -12,7 +12,7 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   checkAuth: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (skipApiCall?: boolean) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -40,19 +40,65 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: async () => {
+      logout: async (skipApiCall = false) => {
         try {
-          set({ isLoading: true });
-          await authApi.logout();
-          set({ user: null, isLoading: false });
+          set({ isLoading: true, error: null });
+
+          // Only call API if not skipping (to avoid double calls)
+          if (!skipApiCall) {
+            await authApi.logout();
+          }
+
+          // Clear all auth state
+          set({
+            user: null,
+            isLoading: false,
+            error: null
+          });
+
+          // Manually clear localStorage after state update
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth-storage');
+            sessionStorage.removeItem('auth-storage');
+          }
+
         } catch (error) {
-          set({ error: 'Failed to logout', isLoading: false });
+          // Even if API call fails, clear local state
+          set({
+            user: null,
+            isLoading: false,
+            error: 'Logout completed with errors'
+          });
+
+          // Manually clear localStorage even on error
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth-storage');
+            sessionStorage.removeItem('auth-storage');
+          }
         }
       },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({ user: state.user }), // Only persist user data
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          const item = localStorage.getItem(name);
+          return item;
+        },
+        setItem: (name, value) => {
+          // Don't persist if user is null (logged out)
+          const parsed = JSON.parse(value);
+          if (parsed?.state?.user === null) {
+            localStorage.removeItem(name);
+            return;
+          }
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name) => {
+          localStorage.removeItem(name);
+        },
+      })),
     }
   )
 );

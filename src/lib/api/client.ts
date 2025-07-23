@@ -36,6 +36,12 @@ apiClient.interceptors.response.use(
 // Request interceptor for CSRF token
 let csrfToken: string | null = null;
 
+// Function to clear CSRF token
+export const clearCsrfToken = () => {
+  csrfToken = null;
+  console.log('[CSRF] Token cleared manually');
+};
+
 apiClient.interceptors.request.use(
   async (config) => {
     // Skip CSRF for GET requests and csrf-token endpoint
@@ -75,6 +81,13 @@ apiClient.interceptors.response.use(
       csrfToken = response.data.csrfToken;
       console.log('[CSRF] Updated token from response');
     }
+    
+    // Clear CSRF token on successful logout
+    if (response.config.url?.includes('/auth/logout') && response.status === 200) {
+      csrfToken = null;
+      console.log('[CSRF] Token cleared after successful logout');
+    }
+    
     return response;
   },
   async (error: AxiosError) => {

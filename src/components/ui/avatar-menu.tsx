@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { User, Settings, HelpCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/stores/auth";
-import { authApi } from "@/lib/api/auth";
+import { useLogout } from "@/lib/hooks/useAuth";
 
 interface AvatarMenuProps {
   isMobile?: boolean;
@@ -17,31 +17,16 @@ interface AvatarMenuProps {
 export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
+  const logout = useLogout();
 
   const handleLogout = async () => {
-    try {
-      // Close mobile menu if present
-      if (onClose) {
-        onClose();
-      }
-      await authApi.logout();
-      setUser(null);
-      // Clear any persisted auth state
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-storage');
-      }
-      // Navigate to home page
-      window.location.href = '/';
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // Even if API call fails, clear local state
-      setUser(null);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-storage');
-      }
-      window.location.href = '/';
+    // Close mobile menu if present
+    if (onClose) {
+      onClose();
     }
+    // Use the logout mutation from useLogout hook
+    logout.mutate();
   };
 
   const menuItems = [
