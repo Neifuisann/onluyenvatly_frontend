@@ -40,14 +40,13 @@ export default function LoginPage() {
   });
 
   const onPhoneSubmit = async (data: PhoneFormData) => {
-    const deviceInfo = {
-      userAgent: navigator.userAgent,
-      screenResolution: `${window.screen.width}x${window.screen.height}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    };
+    // Create a simple device ID from browser info
+    const deviceId = btoa(
+      `${navigator.userAgent}-${window.screen.width}x${window.screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+    ).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
     
     studentLogin.mutate(
-      { ...data, deviceInfo },
+      { ...data, deviceId },
       {
         onSuccess: () => {
           router.push(returnUrl);

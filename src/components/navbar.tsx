@@ -74,7 +74,7 @@ export function Navbar() {
               className="hidden md:block"
             >
               <Button asChild variant="default">
-                <Link href="/student/login">Đăng nhập</Link>
+                <Link href="/login">Đăng nhập</Link>
               </Button>
             </motion.div>
 
@@ -115,7 +115,7 @@ export function Navbar() {
                   })}
                   <div className="pt-4 border-t">
                     <Button asChild variant="default" className="w-full">
-                      <Link href="/student/login" onClick={() => setIsOpen(false)}>
+                      <Link href="/login" onClick={() => setIsOpen(false)}>
                         Đăng nhập
                       </Link>
                     </Button>

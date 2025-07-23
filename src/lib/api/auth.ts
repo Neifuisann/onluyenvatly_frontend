@@ -4,11 +4,7 @@ export interface LoginCredentials {
   username?: string;
   password: string;
   phone_number?: string;
-  deviceInfo?: {
-    userAgent: string;
-    screenResolution: string;
-    timezone: string;
-  };
+  deviceId?: string;
 }
 
 export interface RegisterData {
@@ -44,7 +40,7 @@ export const authApi = {
 
   // Student login
   studentLogin: async (credentials: LoginCredentials) => {
-    const response = await apiClient.post('/auth/student/login', credentials);
+    const response = await apiClient.post('/auth/login', credentials);
     return response.data;
   },
 
