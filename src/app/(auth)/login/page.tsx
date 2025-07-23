@@ -1,171 +1,248 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useAdminLogin, useStudentLogin } from '@/lib/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { useStudentLogin } from '@/lib/hooks/useAuth';
+import { Loader2, Phone, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'motion/react';
+import { FaGoogle, FaFacebook } from 'react-icons/fa';
 
-const adminSchema = z.object({
-  username: z.string().min(1, 'Tên đăng nhập là bắt buộc'),
-  password: z.string().min(1, 'Mật khẩu là bắt buộc'),
-});
-
-const studentSchema = z.object({
+const phoneSchema = z.object({
   phone_number: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại phải có 10 chữ số'),
   password: z.string().min(1, 'Mật khẩu là bắt buộc'),
 });
 
-type AdminFormData = z.infer<typeof adminSchema>;
-type StudentFormData = z.infer<typeof studentSchema>;
+type PhoneFormData = z.infer<typeof phoneSchema>;
+
+type SignInMethod = 'phone' | 'email' | 'google' | 'facebook' | null;
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState('student');
-  const adminLogin = useAdminLogin();
+  const [selectedMethod, setSelectedMethod] = useState<SignInMethod>(null);
   const studentLogin = useStudentLogin();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/';
 
-  const adminForm = useForm<AdminFormData>({
-    resolver: zodResolver(adminSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-    },
-  });
-
-  const studentForm = useForm<StudentFormData>({
-    resolver: zodResolver(studentSchema),
+  const phoneForm = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneSchema),
     defaultValues: {
       phone_number: '',
       password: '',
     },
   });
 
-  const onAdminSubmit = (data: AdminFormData) => {
-    adminLogin.mutate(data);
-  };
-
-  const onStudentSubmit = (data: StudentFormData) => {
-    // Get device info for student login
+  const onPhoneSubmit = async (data: PhoneFormData) => {
     const deviceInfo = {
       userAgent: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
-    studentLogin.mutate({ ...data, deviceInfo });
+    studentLogin.mutate(
+      { ...data, deviceInfo },
+      {
+        onSuccess: () => {
+          router.push(returnUrl);
+        },
+      }
+    );
   };
 
+  const handleMethodSelect = (method: SignInMethod) => {
+    setSelectedMethod(method);
+  };
+
+  const signInMethods = [
+    {
+      id: 'google',
+      name: 'Đăng nhập với Google',
+      icon: FaGoogle,
+      bgColor: 'bg-white hover:bg-gray-50',
+      textColor: 'text-gray-700',
+      borderColor: 'border-gray-300',
+    },
+    {
+      id: 'facebook',
+      name: 'Đăng nhập với Facebook',
+      icon: FaFacebook,
+      bgColor: 'bg-blue-600 hover:bg-blue-700',
+      textColor: 'text-white',
+      borderColor: 'border-blue-600',
+    },
+    {
+      id: 'email',
+      name: 'Email',
+      icon: Mail,
+      bgColor: 'bg-white hover:bg-gray-50',
+      textColor: 'text-gray-700',
+      borderColor: 'border-gray-300',
+    },
+    {
+      id: 'phone',
+      name: 'Số điện thoại',
+      icon: Phone,
+      bgColor: 'bg-white hover:bg-gray-50',
+      textColor: 'text-gray-700',
+      borderColor: 'border-gray-300',
+    },
+  ];
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Đăng nhập</CardTitle>
-        <CardDescription>
-          Chọn loại tài khoản và đăng nhập vào hệ thống
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="student">Học sinh</TabsTrigger>
-            <TabsTrigger value="admin">Quản trị viên</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="student" className="space-y-4">
-            <Form {...studentForm}>
-              <form onSubmit={studentForm.handleSubmit(onStudentSubmit)} className="space-y-4">
-                <FormField
-                  control={studentForm.control}
-                  name="phone_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Số điện thoại</FormLabel>
-                      <FormControl>
-                        <Input placeholder="0987654321" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={studentForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mật khẩu</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={studentLogin.isPending}
+    <div data-testid="login-container" className="w-full">
+      <Card className="w-full max-w-md mx-auto shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Đăng nhập</CardTitle>
+          <CardDescription>
+            Chọn phương thức đăng nhập của bạn
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <AnimatePresence mode="wait">
+            {selectedMethod === null ? (
+              <motion.div
+                key="methods"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-3"
+              >
+                {signInMethods.map((method) => (
+                  <Button
+                    key={method.id}
+                    variant="outline"
+                    className={`w-full h-12 justify-start px-4 ${method.bgColor} ${method.textColor} border ${method.borderColor} transition-all duration-200`}
+                    onClick={() => handleMethodSelect(method.id as SignInMethod)}
+                  >
+                    <method.icon className="mr-3 h-5 w-5" />
+                    {method.name}
+                  </Button>
+                ))}
+              </motion.div>
+            ) : selectedMethod === 'phone' ? (
+              <motion.div
+                key="phone-form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Form {...phoneForm}>
+                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4">
+                    <FormField
+                      control={phoneForm.control}
+                      name="phone_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Số điện thoại</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="0987654321" 
+                              {...field} 
+                              className="h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={phoneForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Mật khẩu</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              {...field} 
+                              className="h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="text-right">
+                      <Link 
+                        href="/forgot-password" 
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        Quên mật khẩu?
+                      </Link>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                      disabled={studentLogin.isPending}
+                    >
+                      {studentLogin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Đăng nhập
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => setSelectedMethod(null)}
+                    >
+                      Chọn phương thức khác
+                    </Button>
+                  </form>
+                </Form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="coming-soon"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                className="text-center py-8"
+              >
+                <p className="text-gray-500 mb-4">
+                  Phương thức này sẽ sớm được hỗ trợ
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedMethod(null)}
                 >
-                  {studentLogin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Đăng nhập
+                  Quay lại
                 </Button>
-              </form>
-            </Form>
-            <div className="text-center text-sm">
-              Chưa có tài khoản?{' '}
-              <Link href="/register" className="text-primary hover:underline">
-                Đăng ký ngay
-              </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
             </div>
-          </TabsContent>
-          
-          <TabsContent value="admin" className="space-y-4">
-            <Form {...adminForm}>
-              <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
-                <FormField
-                  control={adminForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tên đăng nhập</FormLabel>
-                      <FormControl>
-                        <Input placeholder="admin" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={adminForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mật khẩu</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={adminLogin.isPending}
-                >
-                  {adminLogin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Đăng nhập
-                </Button>
-              </form>
-            </Form>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">Hoặc</span>
+            </div>
+          </div>
+
+          <div className="text-center text-sm">
+            Chưa có tài khoản?{' '}
+            <Link 
+              href="/register" 
+              className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            >
+              Đăng ký ngay
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
