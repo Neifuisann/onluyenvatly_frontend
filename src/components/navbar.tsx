@@ -109,7 +109,7 @@ export function Navbar() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
@@ -153,7 +153,6 @@ export function Navbar() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
         </div>
       </div>
     </motion.nav>
