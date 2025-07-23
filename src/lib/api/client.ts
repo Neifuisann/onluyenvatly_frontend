@@ -32,22 +32,27 @@ let csrfToken: string | null = null;
 
 apiClient.interceptors.request.use(
   async (config) => {
-    // Skip CSRF for GET requests
-    if (config.method?.toLowerCase() !== 'get') {
+    // Skip CSRF for GET requests and csrf-token endpoint
+    if (config.method?.toLowerCase() !== 'get' && !config.url?.includes('csrf-token')) {
       if (!csrfToken) {
         // Fetch CSRF token if not available
         try {
+          console.log('[CSRF] Fetching new CSRF token...');
           const response = await axios.get(`${API_URL}/csrf-token`, {
             withCredentials: true,
           });
           csrfToken = response.data.csrfToken;
+          console.log('[CSRF] Token fetched:', csrfToken);
         } catch (error) {
-          console.error('Failed to fetch CSRF token:', error);
+          console.error('[CSRF] Failed to fetch CSRF token:', error);
         }
       }
       
       if (csrfToken && config.headers) {
         config.headers['x-csrf-token'] = csrfToken;
+        console.log('[CSRF] Added token to request headers');
+      } else {
+        console.warn('[CSRF] No token available for request');
       }
     }
     
@@ -56,14 +61,37 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Clear CSRF token on 403 (forbidden) responses
+// Update CSRF token from responses and handle errors
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Update CSRF token if present in response
+    if (response.data?.csrfToken) {
+      csrfToken = response.data.csrfToken;
+      console.log('[CSRF] Updated token from response');
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     if (error.response?.status === 403) {
       // Clear CSRF token to fetch a new one
       csrfToken = null;
+      console.log('[CSRF] Cleared token due to 403 error');
     }
+    
+    // If CSRF token error, try to get a new token
+    if (error.response?.data && typeof error.response.data === 'object' && 
+        'error' in error.response.data && 
+        (error.response.data as any).error?.includes('CSRF')) {
+      console.log('[CSRF] CSRF error detected, clearing token');
+      csrfToken = null;
+      
+      // Update token from error response if available
+      if ((error.response.data as any).csrfToken) {
+        csrfToken = (error.response.data as any).csrfToken;
+        console.log('[CSRF] Updated token from error response');
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
