@@ -76,7 +76,7 @@ export function Navbar() {
           </div>
 
           {/* Desktop Login Button / Avatar and Mobile Menu */}
-          <div className="flex items-center space-x-4 ml-auto">
+          <div className="flex items-center space-x-4">
             {isClient && (
               <>
                 {user ? (
@@ -103,7 +103,7 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="md:hidden flex-shrink-0"
                   aria-label="Menu"
                   data-testid="mobile-menu-button"
                 >
@@ -141,7 +141,7 @@ export function Navbar() {
                   {isClient && (
                     <div className="mt-4 pt-4 border-t">
                       {user ? (
-                        <AvatarMenu isMobile />
+                        <AvatarMenu isMobile onClose={() => setIsOpen(false)} />
                       ) : (
                         <Button asChild variant="default" className="w-full">
                           <Link href="/login" onClick={() => setIsOpen(false)}>

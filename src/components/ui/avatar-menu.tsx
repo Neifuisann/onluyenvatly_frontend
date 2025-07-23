@@ -11,21 +11,36 @@ import { authApi } from "@/lib/api/auth";
 
 interface AvatarMenuProps {
   isMobile?: boolean;
+  onClose?: () => void;
 }
 
-export function AvatarMenu({ isMobile = false }: AvatarMenuProps) {
+export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { user, setUser } = useAuthStore();
 
   const handleLogout = async () => {
     try {
+      // Close mobile menu if present
+      if (onClose) {
+        onClose();
+      }
       await authApi.logout();
       setUser(null);
-      router.push("/");
-      router.refresh();
+      // Clear any persisted auth state
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-storage');
+      }
+      // Navigate to home page
+      window.location.href = '/';
     } catch (error) {
       console.error("Logout failed:", error);
+      // Even if API call fails, clear local state
+      setUser(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-storage');
+      }
+      window.location.href = '/';
     }
   };
 
@@ -34,13 +49,19 @@ export function AvatarMenu({ isMobile = false }: AvatarMenuProps) {
       icon: Settings,
       label: "Cài đặt",
       href: "/settings",
-      onClick: () => setIsOpen(false),
+      onClick: () => {
+        setIsOpen(false);
+        if (onClose) onClose();
+      },
     },
     {
       icon: HelpCircle,
       label: "Trợ giúp",
       href: "/help",
-      onClick: () => setIsOpen(false),
+      onClick: () => {
+        setIsOpen(false);
+        if (onClose) onClose();
+      },
     },
     {
       icon: LogOut,
@@ -81,7 +102,7 @@ export function AvatarMenu({ isMobile = false }: AvatarMenuProps) {
               <button
                 key={index}
                 onClick={item.onClick}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
                 role="menuitem"
               >
                 <item.icon className="w-4 h-4" />
@@ -140,7 +161,7 @@ export function AvatarMenu({ isMobile = false }: AvatarMenuProps) {
                   <button
                     key={index}
                     onClick={item.onClick}
-                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
                     role="menuitem"
                   >
                     <item.icon className="w-4 h-4" />
