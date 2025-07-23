@@ -36,15 +36,15 @@ export function Navbar() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex-shrink-0"
+            className="flex-shrink-0 min-w-0"
           >
-            <Link href="/" className="text-xl font-bold text-gray-900">
+            <Link href="/" className="text-lg sm:text-xl font-bold text-gray-900 truncate">
               Vật Lý 12
             </Link>
           </motion.div>
@@ -97,25 +97,40 @@ export function Navbar() {
           )}
 
           {/* Mobile Menu Button */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden ml-2 flex-shrink-0"
-                aria-label="Menu"
-                data-testid="mobile-menu-button"
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px] max-w-[90vw] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
+          <div className="flex items-center space-x-2 md:hidden">
+            {/* Mobile Login/Avatar */}
+            {isClient && user && (
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
+                <span className="text-xs font-medium">
+                  {(user?.full_name || user?.username || "U").charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="flex-shrink-0 h-10 w-10"
+                  aria-label="Menu"
+                  data-testid="mobile-menu-button"
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-[300px] sm:w-[350px] max-w-[85vw] p-0 overflow-y-auto"
+            >
+              <div className="flex flex-col h-full">
+                <SheetHeader className="px-6 py-4 border-b">
+                  <SheetTitle className="text-left">Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 flex flex-col">
+
+                <div className="flex-1 px-6 py-4">
                   {/* Mobile navigation items */}
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {navItems.map((item) => {
                       const isActive = pathname === item.href;
                       return (
@@ -124,7 +139,7 @@ export function Navbar() {
                           href={item.href}
                           onClick={() => setIsOpen(false)}
                           className={cn(
-                            "px-4 py-3 rounded-md text-base font-medium transition-colors",
+                            "block px-4 py-3 rounded-lg text-base font-medium transition-colors",
                             isActive
                               ? "bg-blue-100 text-blue-700"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -135,14 +150,14 @@ export function Navbar() {
                       );
                     })}
                   </div>
-                  
+
                   {/* Mobile auth section */}
                   {isClient && (
-                    <div className="mt-4 pt-4 border-t">
+                    <div className="mt-6 pt-6 border-t border-gray-200">
                       {user ? (
                         <AvatarMenu isMobile onClose={() => setIsOpen(false)} />
                       ) : (
-                        <Button asChild variant="default" className="w-full">
+                        <Button asChild variant="default" className="w-full h-12 text-base">
                           <Link href="/login" onClick={() => setIsOpen(false)}>
                             Đăng nhập
                           </Link>
@@ -151,8 +166,10 @@ export function Navbar() {
                     </div>
                   )}
                 </div>
-              </SheetContent>
+              </div>
+            </SheetContent>
             </Sheet>
+          </div>
         </div>
       </div>
     </motion.nav>

@@ -58,45 +58,50 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
   if (isMobile) {
     // Mobile menu items (for mobile sheet menu)
     return (
-      <>
-        <div className="px-4 py-3 border-b">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">{user?.full_name || user?.username || "Học sinh"}</p>
-              <p className="text-xs text-gray-500">{user?.phone_number || user?.email}</p>
-            </div>
+      <div className="space-y-4">
+        {/* User info section */}
+        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
+            <User className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-medium text-gray-900 truncate">
+              {user?.full_name || user?.username || "Học sinh"}
+            </p>
+            <p className="text-sm text-gray-500 truncate">
+              {user?.phone_number || user?.email}
+            </p>
           </div>
         </div>
-        <div className="py-2">
+
+        {/* Menu items */}
+        <div className="space-y-1">
           {menuItems.map((item, index) => (
             item.href ? (
               <Link
                 key={index}
                 href={item.href}
                 onClick={item.onClick}
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="flex items-center space-x-3 px-4 py-3 text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 role="menuitem"
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>
               </Link>
             ) : (
               <button
                 key={index}
                 onClick={item.onClick}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-left"
                 role="menuitem"
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>
               </button>
             )
           ))}
         </div>
-      </>
+      </div>
     );
   }
 
