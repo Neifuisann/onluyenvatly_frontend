@@ -138,7 +138,7 @@ export default function ResultsPage() {
                 Về danh sách bài học
               </Button>
               <Button
-                onClick={() => router.push(`/lesson?id=${result.lesson_id}`)}
+                onClick={() => router.push(`/lesson/${result.lesson_id}`)}
               >
                 Làm lại
               </Button>
