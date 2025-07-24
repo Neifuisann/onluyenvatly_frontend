@@ -6,6 +6,11 @@ import { EncryptionService } from '@/lib/crypto/encryption';
 import { clearCsrfToken } from '@/lib/api/client';
 import { extractErrorMessage } from '@/lib/utils/errorHandler';
 
+export function useAuth() {
+  const { user, isLoading, error } = useAuthStore();
+  return { user, isLoading, error };
+}
+
 export function useAdminLogin() {
   const router = useRouter();
   const { setUser, setError } = useAuthStore();
@@ -37,13 +42,13 @@ export function useStudentLogin() {
     mutationFn: (credentials: LoginCredentials) => authApi.studentLogin(credentials),
     onSuccess: async (data) => {
       setUser(data.user);
-      // Initialize encryption after successful login (optional)
+      // Initialize encryption after successful login
       try {
         await EncryptionService.initializeEncryption();
       } catch (error) {
         console.warn('Encryption initialization failed, continuing without encryption:', error);
       }
-      // Don't redirect here - let the component handle it
+      router.push('/lessons');
     },
     onError: (error) => {
       const message = extractErrorMessage(error);
@@ -58,10 +63,8 @@ export function useStudentRegister() {
 
   return useMutation({
     mutationFn: (data: RegisterData) => authApi.studentRegister(data),
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       setUser(data.user);
-      // Initialize encryption after successful registration
-      await EncryptionService.initializeEncryption();
       router.push('/lessons');
     },
     onError: (error) => {
@@ -78,42 +81,15 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: async () => {
-      // Clear all client-side state first
-      EncryptionService.clearKey();
-      clearCsrfToken();
-
-      // Clear localStorage manually before logout call
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-storage');
-        sessionStorage.removeItem('auth-storage');
-      }
-
-      // Skip API call since we already called it above
       await logout(true);
-
-      // Small delay to ensure state is cleared before redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Use window.location.href to ensure full page reload and clear all state
-      window.location.href = '/';
+      clearCsrfToken();
+      router.push('/');
     },
-    onError: async () => {
-      // Even if logout API fails, clear local state
-      EncryptionService.clearKey();
-      clearCsrfToken();
-
-      // Clear localStorage manually
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-storage');
-        sessionStorage.removeItem('auth-storage');
-      }
-
+    onError: async (error) => {
+      // Even if logout fails on server, clear local state
       await logout(true);
-
-      // Small delay to ensure state is cleared before redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      window.location.href = '/';
+      clearCsrfToken();
+      router.push('/');
     },
   });
 }
