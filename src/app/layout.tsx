@@ -22,10 +22,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <QueryProvider>
           <AuthProvider>
-            <Navbar />
-            <main className="min-h-screen">
-              {children}
-            </main>
+            {children}
           </AuthProvider>
         </QueryProvider>
       </body>

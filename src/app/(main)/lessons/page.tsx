@@ -323,19 +323,21 @@ export default function LessonsPage() {
             </DialogHeader>
             
             <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={selectedLesson?.thumbnail || selectedLesson?.lessonImage || (selectedLesson ? getStockImage(selectedLesson.id) : '')}
-                alt={selectedLesson?.title || ''}
-                className="w-full h-full object-cover"
-                data-testid="popup-thumbnail"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (selectedLesson) {
-                    target.src = getStockImage(selectedLesson.id);
-                  }
-                }}
-              />
+              {selectedLesson && (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedLesson.thumbnail || selectedLesson.lessonImage || getStockImage(selectedLesson.id)}
+                    alt={selectedLesson.title || ''}
+                    className="w-full h-full object-cover"
+                    data-testid="popup-thumbnail"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = getStockImage(selectedLesson.id);
+                    }}
+                  />
+                </>
+              )}
             </div>
             
             <DialogDescription className="text-base" data-testid="popup-description">
