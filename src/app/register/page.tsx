@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { authApi } from '@/lib/api/auth';
+import { useAuthStore } from '@/lib/stores/auth';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import { Mail, Phone, Loader2, Eye, EyeOff } from 'lucide-react';
 import { BsCheckCircleFill, BsXCircleFill } from 'react-icons/bs';
@@ -115,6 +116,14 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const form = useForm<PhoneRegisterForm>({
     resolver: zodResolver(phoneRegisterSchema),
