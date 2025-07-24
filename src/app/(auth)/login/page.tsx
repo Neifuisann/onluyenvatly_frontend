@@ -84,9 +84,9 @@ export default function LoginPage() {
       id: 'facebook',
       name: 'Đăng nhập với Facebook',
       icon: FaFacebook,
-      bgColor: 'bg-blue-600 hover:bg-blue-700',
-      textColor: 'text-white',
-      borderColor: 'border-blue-600',
+      bgColor: 'bg-white hover:bg-gray-50',
+      textColor: 'text-gray-700',
+      borderColor: 'border-gray-300',
     },
     {
       id: 'email',
@@ -133,7 +133,7 @@ export default function LoginPage() {
                     className={`w-full h-12 justify-start px-4 ${method.bgColor} ${method.textColor} border ${method.borderColor} transition-all duration-200`}
                     onClick={() => handleMethodSelect(method.id as SignInMethod)}
                   >
-                    <method.icon className="mr-3 h-5 w-5" />
+                    <method.icon className={`mr-3 h-5 w-5 ${method.id === 'facebook' ? 'text-blue-600' : method.id === 'google' ? 'text-gray-600' : 'text-gray-600'}`} />
                     {method.name}
                   </Button>
                 ))}
