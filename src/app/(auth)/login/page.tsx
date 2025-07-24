@@ -26,6 +26,7 @@ type SignInMethod = 'phone' | 'email' | 'google' | 'facebook' | null;
 
 export default function LoginPage() {
   const [selectedMethod, setSelectedMethod] = useState<SignInMethod>(null);
+  const [deviceId, setDeviceId] = useState<string>('');
   const studentLogin = useStudentLogin();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,11 +40,22 @@ export default function LoginPage() {
     },
   });
 
+  // Generate device ID on client side only
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const id = btoa(
+        `${navigator.userAgent}-${window.screen.width}x${window.screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+      ).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+      setDeviceId(id);
+    }
+  }, []);
+
   const onPhoneSubmit = async (data: PhoneFormData) => {
-    // Create a simple device ID from browser info
-    const deviceId = btoa(
-      `${navigator.userAgent}-${window.screen.width}x${window.screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`
-    ).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+    // Ensure device ID is available before submitting
+    if (!deviceId) {
+      console.error('Device ID not available');
+      return;
+    }
     
     studentLogin.mutate(
       { ...data, deviceId },
@@ -183,7 +195,7 @@ export default function LoginPage() {
                     <Button 
                       type="submit" 
                       className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-                      disabled={studentLogin.isPending}
+                      disabled={studentLogin.isPending || !deviceId}
                     >
                       {studentLogin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Đăng nhập

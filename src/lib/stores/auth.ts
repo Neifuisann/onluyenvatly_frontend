@@ -58,8 +58,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Manually clear localStorage after state update
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth-storage');
-            sessionStorage.removeItem('auth-storage');
+            try {
+              localStorage.removeItem('auth-storage');
+              sessionStorage.removeItem('auth-storage');
+            } catch {
+              // Silently fail if storage is not available
+            }
           }
 
         } catch (error) {
@@ -72,8 +76,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Manually clear localStorage even on error
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth-storage');
-            sessionStorage.removeItem('auth-storage');
+            try {
+              localStorage.removeItem('auth-storage');
+              sessionStorage.removeItem('auth-storage');
+            } catch {
+              // Silently fail if storage is not available
+            }
           }
         }
       },
@@ -83,20 +91,35 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({ user: state.user }), // Only persist user data
       storage: createJSONStorage(() => ({
         getItem: (name) => {
-          const item = localStorage.getItem(name);
-          return item;
+          if (typeof window === 'undefined') return null;
+          try {
+            const item = localStorage.getItem(name);
+            return item;
+          } catch {
+            return null;
+          }
         },
         setItem: (name, value) => {
-          // Don't persist if user is null (logged out)
-          const parsed = JSON.parse(value);
-          if (parsed?.state?.user === null) {
-            localStorage.removeItem(name);
-            return;
+          if (typeof window === 'undefined') return;
+          try {
+            // Don't persist if user is null (logged out)
+            const parsed = JSON.parse(value);
+            if (parsed?.state?.user === null) {
+              localStorage.removeItem(name);
+              return;
+            }
+            localStorage.setItem(name, value);
+          } catch {
+            // Silently fail if localStorage is not available
           }
-          localStorage.setItem(name, value);
         },
         removeItem: (name) => {
-          localStorage.removeItem(name);
+          if (typeof window === 'undefined') return;
+          try {
+            localStorage.removeItem(name);
+          } catch {
+            // Silently fail if localStorage is not available
+          }
         },
       })),
     }

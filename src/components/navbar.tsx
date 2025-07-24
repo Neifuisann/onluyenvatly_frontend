@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { AvatarMenu } from "@/components/ui/avatar-menu";
 import { useAuthStore } from "@/lib/stores/auth";
+import { ClientOnly } from "@/components/client-only";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
@@ -22,10 +23,8 @@ export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { user, checkAuth } = useAuthStore();
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     checkAuth();
   }, [checkAuth]);
 
@@ -76,36 +75,36 @@ export function Navbar() {
           </div>
 
           {/* Desktop Login Button / Avatar */}
-          {isClient && (
-            <>
-              {user ? (
-                <div className="hidden md:block">
-                  <AvatarMenu />
-                </div>
-              ) : (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden md:block"
-                >
-                  <Button asChild variant="default">
-                    <Link href="/login">Đăng nhập</Link>
-                  </Button>
-                </motion.div>
-              )}
-            </>
-          )}
+          <ClientOnly fallback={<div className="hidden md:block w-20 h-10" />}>
+            {user ? (
+              <div className="hidden md:block">
+                <AvatarMenu />
+              </div>
+            ) : (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden md:block"
+              >
+                <Button asChild variant="default">
+                  <Link href="/login">Đăng nhập</Link>
+                </Button>
+              </motion.div>
+            )}
+          </ClientOnly>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center space-x-2 md:hidden">
             {/* Mobile Login/Avatar */}
-            {isClient && user && (
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
-                <span className="text-xs font-medium">
-                  {(user?.full_name || user?.username || "U").charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <ClientOnly>
+              {user && (
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
+                  <span className="text-xs font-medium">
+                    {(user?.full_name || user?.username || "U").charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </ClientOnly>
 
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -152,7 +151,7 @@ export function Navbar() {
                   </div>
 
                   {/* Mobile auth section */}
-                  {isClient && (
+                  <ClientOnly fallback={<div className="mt-6 pt-6 border-t border-gray-200 h-16" />}>
                     <div className="mt-6 pt-6 border-t border-gray-200">
                       {user ? (
                         <AvatarMenu isMobile onClose={() => setIsOpen(false)} />
@@ -164,7 +163,7 @@ export function Navbar() {
                         </Button>
                       )}
                     </div>
-                  )}
+                  </ClientOnly>
                 </div>
               </div>
             </SheetContent>
