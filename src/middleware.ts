@@ -2,13 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  // Check if this is a Playwright test
-  const isPlaywrightTest = request.headers.get('x-playwright-test') === 'true';
-  
-  // Allow Playwright tests to bypass authentication
-  if (isPlaywrightTest) {
-    return NextResponse.next();
-  }
   const pathname = request.nextUrl.pathname;
 
   // Public routes that don't require authentication

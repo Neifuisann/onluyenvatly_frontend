@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, BookOpen, Clock, Eye, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getStockImage } from '@/lib/stock-images';
 
 export default function LessonsPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function LessonsPage() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   const [allTags, setAllTags] = useState<Map<string, number>>(new Map());
+  const [allLessons, setAllLessons] = useState<Lesson[]>([]); // Store all lessons for tag calculation
 
   const LESSONS_PER_PAGE = 12;
 
@@ -100,16 +102,13 @@ export default function LessonsPage() {
         setTotalPages(Math.ceil((response.total || 0) / LESSONS_PER_PAGE));
         setCurrentPage(response.page || 1);
         
-        // Calculate available tags when no tags are selected
-        if (selectedTags.length === 0) {
-          // Fetch all lessons to get all tags (max 100 per backend validation)
+        // Always fetch all lessons once to maintain tag state
+        if (allLessons.length === 0 || selectedTags.length === 0) {
           const allLessonsResponse = await lessonsApi.getLessons({ limit: 100 });
           if (allLessonsResponse.lessons) {
+            setAllLessons(allLessonsResponse.lessons);
             calculateAvailableTags(allLessonsResponse.lessons);
           }
-        } else {
-          // When tags are selected, only show compatible tags
-          calculateAvailableTags(lessonsData);
         }
       }
     } catch (err) {
@@ -210,31 +209,63 @@ export default function LessonsPage() {
     { value: 'popular', label: 'Xem nhiều nhất' },
   ];
 
-  // Available tags for filtering (with collision support)
+  // Available tags for filtering (with bidirectional support)
   const availableTags = useMemo(() => {
-    if (selectedTags.length === 0) {
-      // Show all tags sorted by popularity
-      return Array.from(allTags.entries()).map(([tag, count]) => ({
-        name: tag,
-        count,
-        disabled: false,
-      }));
+    if (allLessons.length === 0) {
+      return [];
     }
 
-    // When tags are selected, show only compatible tags
-    const compatibleTags = new Set<string>();
-    lessons.forEach(lesson => {
-      if (lesson.tags && lesson.tags.length > 0) {
-        lesson.tags.forEach(tag => compatibleTags.add(tag));
+    // Create a map to store original tag order and counts
+    const tagOrderMap = new Map<string, number>();
+    let orderIndex = 0;
+    
+    // First pass: collect all tags with their original order
+    allLessons.forEach(lesson => {
+      if (lesson.tags && Array.isArray(lesson.tags)) {
+        lesson.tags.forEach(tag => {
+          if (tag && !tagOrderMap.has(tag)) {
+            tagOrderMap.set(tag, orderIndex++);
+          }
+        });
       }
     });
 
-    return Array.from(allTags.entries()).map(([tag, count]) => ({
+    if (selectedTags.length === 0) {
+      // Show all tags sorted by popularity from allTags
+      return Array.from(allTags.entries()).map(([tag, count]) => ({
+        name: tag,
+        count,
+        visible: true,
+        order: tagOrderMap.get(tag) || 0,
+      }));
+    }
+
+    // When tags are selected, calculate which tags would be compatible
+    const compatibleTagsMap = new Map<string, number>();
+    
+    // Filter lessons that have ALL selected tags
+    const filteredLessons = allLessons.filter(lesson => {
+      if (!lesson.tags || lesson.tags.length === 0) return false;
+      return selectedTags.every(selectedTag => lesson.tags.includes(selectedTag));
+    });
+
+    // Count tags from filtered lessons
+    filteredLessons.forEach(lesson => {
+      lesson.tags.forEach(tag => {
+        if (tag) {
+          compatibleTagsMap.set(tag, (compatibleTagsMap.get(tag) || 0) + 1);
+        }
+      });
+    });
+
+    // Map all tags with visibility and counts
+    return Array.from(allTags.entries()).map(([tag, originalCount]) => ({
       name: tag,
-      count,
-      disabled: !selectedTags.includes(tag) && !compatibleTags.has(tag),
+      count: compatibleTagsMap.get(tag) || originalCount,
+      visible: selectedTags.includes(tag) || compatibleTagsMap.has(tag),
+      order: tagOrderMap.get(tag) || 0,
     }));
-  }, [allTags, selectedTags, lessons]);
+  }, [allTags, selectedTags, allLessons]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -291,17 +322,21 @@ export default function LessonsPage() {
               </DialogTitle>
             </DialogHeader>
             
-            {(selectedLesson?.thumbnail || selectedLesson?.lessonImage) && (
-              <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={selectedLesson.thumbnail || selectedLesson.lessonImage}
-                  alt={selectedLesson.title}
-                  className="w-full h-full object-cover"
-                  data-testid="popup-thumbnail"
-                />
-              </div>
-            )}
+            <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedLesson?.thumbnail || selectedLesson?.lessonImage || (selectedLesson ? getStockImage(selectedLesson.id) : '')}
+                alt={selectedLesson?.title || ''}
+                className="w-full h-full object-cover"
+                data-testid="popup-thumbnail"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (selectedLesson) {
+                    target.src = getStockImage(selectedLesson.id);
+                  }
+                }}
+              />
+            </div>
             
             <DialogDescription className="text-base" data-testid="popup-description">
               {selectedLesson?.description || 'Không có mô tả cho bài học này.'}
@@ -346,21 +381,39 @@ export default function LessonsPage() {
           >
             <h3 className="text-sm font-medium mb-3">Lọc theo chủ đề:</h3>
             <div className="flex flex-wrap gap-2">
-              {availableTags.map(({ name, count, disabled }) => (
-                <Badge
-                  key={name}
-                  variant={selectedTags.includes(name) ? "default" : "outline"}
-                  className={cn(
-                    "cursor-pointer transition-all",
-                    disabled && "opacity-50 cursor-not-allowed",
-                    selectedTags.includes(name) && "bg-blue-600 hover:bg-blue-700"
-                  )}
-                  onClick={() => !disabled && handleTagClick(name)}
-                  data-testid={`tag-${name}`}
-                >
-                  {name} ({count})
-                </Badge>
-              ))}
+              {availableTags
+                .sort((a, b) => {
+                  // Keep selected tags in their original position
+                  if (selectedTags.includes(a.name) && selectedTags.includes(b.name)) {
+                    return a.order - b.order;
+                  }
+                  // If not selected, sort by popularity (count) then by original order
+                  if (!selectedTags.includes(a.name) && !selectedTags.includes(b.name)) {
+                    if (b.count !== a.count) {
+                      return b.count - a.count;
+                    }
+                    return a.order - b.order;
+                  }
+                  // Selected tags maintain their position relative to each other
+                  return a.order - b.order;
+                })
+                .map(({ name, count, visible }) => (
+                  visible && (
+                    <Badge
+                      key={name}
+                      variant={selectedTags.includes(name) ? "default" : "outline"}
+                      className={cn(
+                        "cursor-pointer transition-all",
+                        selectedTags.includes(name) && "bg-blue-600 hover:bg-blue-700"
+                      )}
+                      onClick={() => handleTagClick(name)}
+                      data-testid={`tag-${name}`}
+                      data-selected={selectedTags.includes(name) ? "true" : undefined}
+                    >
+                      {name} ({count})
+                    </Badge>
+                  )
+                ))}
             </div>
           </motion.div>
         )}
@@ -415,25 +468,23 @@ export default function LessonsPage() {
                     onClick={() => handleLessonClick(lesson)}
                     data-testid="lesson-card"
                   >
-                    {(lesson.thumbnail || lesson.lessonImage) && (
-                      <div className="relative h-48 bg-gray-100">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={lesson.thumbnail || lesson.lessonImage}
-                          alt={lesson.title}
-                          className="w-full h-full object-cover"
-                          data-testid="lesson-thumbnail"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/api/placeholder/400/300';
-                          }}
-                        />
-                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm" data-testid="lesson-views">
-                          <Eye className="inline-block h-3 w-3 mr-1" />
-                          {lesson.views || 0}
-                        </div>
+                    <div className="relative h-48 bg-gray-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={lesson.thumbnail || lesson.lessonImage || getStockImage(lesson.id)}
+                        alt={lesson.title}
+                        className="w-full h-full object-cover"
+                        data-testid="lesson-thumbnail"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getStockImage(lesson.id);
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm" data-testid="lesson-views">
+                        <Eye className="inline-block h-3 w-3 mr-1" />
+                        {lesson.views || 0}
                       </div>
-                    )}
+                    </div>
                     <CardHeader>
                       <CardTitle className="line-clamp-2" data-testid="lesson-title">
                         {lesson.title}
