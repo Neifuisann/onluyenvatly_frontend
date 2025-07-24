@@ -4,6 +4,7 @@ import { authApi, LoginCredentials, RegisterData } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { EncryptionService } from '@/lib/crypto/encryption';
 import { clearCsrfToken } from '@/lib/api/client';
+import { extractErrorMessage } from '@/lib/utils/errorHandler';
 
 export function useAdminLogin() {
   const router = useRouter();
@@ -21,8 +22,8 @@ export function useAdminLogin() {
       }
       router.push('/admin');
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Login failed';
+    onError: (error) => {
+      const message = extractErrorMessage(error);
       setError(message);
     },
   });
@@ -44,8 +45,8 @@ export function useStudentLogin() {
       }
       // Don't redirect here - let the component handle it
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Login failed';
+    onError: (error) => {
+      const message = extractErrorMessage(error);
       setError(message);
     },
   });
@@ -63,8 +64,8 @@ export function useStudentRegister() {
       await EncryptionService.initializeEncryption();
       router.push('/lessons');
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Registration failed';
+    onError: (error) => {
+      const message = extractErrorMessage(error);
       setError(message);
     },
   });

@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/stores/auth';
+import { extractErrorMessage, getErrorHelp } from '@/lib/utils/errorHandler';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import { Mail, Phone, Loader2, Eye, EyeOff } from 'lucide-react';
 import { BsCheckCircleFill, BsXCircleFill } from 'react-icons/bs';
@@ -116,6 +117,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorHelp, setErrorHelp] = useState<string | null>(null);
   const { user } = useAuthStore();
 
   // Redirect if already logged in
@@ -138,6 +140,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: PhoneRegisterForm) => {
     setIsLoading(true);
     setError(null);
+    setErrorHelp(null);
 
     try {
       await authApi.studentRegister({
@@ -147,8 +150,14 @@ export default function RegisterPage() {
       });
       
       router.push('/login');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Đã xảy ra lỗi khi đăng ký');
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
+      
+      const helpMessage = getErrorHelp(errorMessage);
+      if (helpMessage) {
+        setErrorHelp(helpMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +165,8 @@ export default function RegisterPage() {
 
   const handleMethodSelect = (method: RegistrationMethod) => {
     setSelectedMethod(method);
+    setError(null);
+    setErrorHelp(null);
   };
 
   const registrationMethods = [
@@ -337,11 +348,20 @@ export default function RegisterPage() {
 
                     {error && (
                       <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm text-red-600 text-center"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-2"
                       >
-                        {error}
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                          <p className="text-sm text-red-600 font-medium">
+                            {error}
+                          </p>
+                          {errorHelp && (
+                            <p className="text-xs text-red-500 mt-1">
+                              💡 {errorHelp}
+                            </p>
+                          )}
+                        </div>
                       </motion.div>
                     )}
 

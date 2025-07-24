@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useStudentLogin } from '@/lib/hooks/useAuth';
 import { useAuthStore } from '@/lib/stores/auth';
+import { extractErrorMessage, getErrorHelp } from '@/lib/utils/errorHandler';
 import { Loader2, Phone, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -28,6 +29,8 @@ type SignInMethod = 'phone' | 'email' | 'google' | 'facebook' | null;
 export default function LoginPage() {
   const [selectedMethod, setSelectedMethod] = useState<SignInMethod>(null);
   const [deviceId, setDeviceId] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [errorHelp, setErrorHelp] = useState<string | null>(null);
   const studentLogin = useStudentLogin();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,9 +63,13 @@ export default function LoginPage() {
   }, []);
 
   const onPhoneSubmit = async (data: PhoneFormData) => {
+    // Clear previous errors
+    setError(null);
+    setErrorHelp(null);
+    
     // Ensure device ID is available before submitting
     if (!deviceId) {
-      console.error('Device ID not available');
+      setError('Không thể xác định thiết bị. Vui lòng tải lại trang.');
       return;
     }
     
@@ -72,12 +79,23 @@ export default function LoginPage() {
         onSuccess: () => {
           router.push(returnUrl);
         },
+        onError: (err) => {
+          const errorMessage = extractErrorMessage(err);
+          setError(errorMessage);
+          
+          const helpMessage = getErrorHelp(errorMessage);
+          if (helpMessage) {
+            setErrorHelp(helpMessage);
+          }
+        }
       }
     );
   };
 
   const handleMethodSelect = (method: SignInMethod) => {
     setSelectedMethod(method);
+    setError(null);
+    setErrorHelp(null);
   };
 
   const signInMethods = [
@@ -200,6 +218,25 @@ export default function LoginPage() {
                         Quên mật khẩu?
                       </Link>
                     </div>
+
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-2"
+                      >
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                          <p className="text-sm text-red-600 font-medium">
+                            {error}
+                          </p>
+                          {errorHelp && (
+                            <p className="text-xs text-red-500 mt-1">
+                              💡 {errorHelp}
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
 
                     <Button 
                       type="submit" 
