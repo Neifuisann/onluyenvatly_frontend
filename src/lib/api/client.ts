@@ -9,6 +9,27 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Important for session cookies
+  paramsSerializer: {
+    serialize: (params) => {
+      const searchParams = new URLSearchParams();
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            // Only append if array has items
+            if (value.length > 0) {
+              searchParams.append(key, value.join(','));
+            }
+            // Don't append empty arrays
+          } else if (value !== '' || typeof value === 'number') {
+            // Always include numbers, even if they're 0
+            searchParams.append(key, String(value));
+          }
+        }
+      });
+      return searchParams.toString();
+    }
+  }
 });
 
 // Response interceptor for error handling
@@ -44,6 +65,14 @@ export const clearCsrfToken = () => {
 
 apiClient.interceptors.request.use(
   async (config) => {
+    // Pass through Playwright test header if present
+    if (typeof window !== 'undefined') {
+      const isPlaywrightTest = document.querySelector('meta[name="x-playwright-test"]')?.getAttribute('content') === 'true';
+      if (isPlaywrightTest && config.headers) {
+        config.headers['x-playwright-test'] = 'true';
+      }
+    }
+    
     // Skip CSRF for GET requests and csrf-token endpoint
     if (config.method?.toLowerCase() !== 'get' && !config.url?.includes('csrf-token')) {
       if (!csrfToken) {

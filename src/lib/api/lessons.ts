@@ -7,6 +7,7 @@ export interface Lesson {
   grade: number;
   description?: string;
   thumbnail?: string;
+  lessonImage?: string;
   tags: string[];
   difficulty: 'easy' | 'medium' | 'hard';
   duration_minutes?: number;
@@ -15,15 +16,18 @@ export interface Lesson {
   question_count?: number;
   avg_score?: number;
   attempt_count?: number;
+  views?: number;
+  completed?: boolean;
+  completedAt?: string | null;
 }
 
 export interface LessonFilters {
   grade?: number;
   subject?: string;
   difficulty?: string;
-  tags?: string[];
+  tags?: string[] | string;
   search?: string;
-  sort?: 'newest' | 'oldest' | 'popular' | 'difficulty';
+  sort?: 'newest' | 'oldest' | 'az' | 'za' | 'popular';
   page?: number;
   limit?: number;
 }
