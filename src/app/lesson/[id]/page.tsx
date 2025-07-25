@@ -19,14 +19,90 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 
+// Seeded random number generator
+class SeededRandom {
+  private seed: number;
+  
+  constructor(seed: number) {
+    this.seed = seed;
+  }
+  
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    return this.seed / 233280;
+  }
+}
+
+// Shuffle array using seeded random
+function shuffleArray<T>(array: T[], random: SeededRandom): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(random.next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Apply question shuffling
+function applyQuestionShuffling(questions: Question[], seed: number): Question[] {
+  const random = new SeededRandom(seed);
+  
+  // Group questions by type
+  const abcdQuestions = questions.filter(q => q.type === 'ABCD');
+  const trueFalseQuestions = questions.filter(q => q.type === 'TRUEFALSE');
+  const numberQuestions = questions.filter(q => q.type === 'NUMBER');
+  
+  // Shuffle each group
+  const shuffledAbcd = shuffleArray(abcdQuestions, random);
+  const shuffledTrueFalse = shuffleArray(trueFalseQuestions, random);
+  const shuffledNumber = shuffleArray(numberQuestions, random);
+  
+  // Return in the specified order
+  return [...shuffledAbcd, ...shuffledTrueFalse, ...shuffledNumber];
+}
+
+// Apply answer shuffling for ABCD questions
+function applyAnswerShuffling(question: Question, seed: number): Question {
+  if (question.type !== 'ABCD' || !question.choices) {
+    return question;
+  }
+  
+  const random = new SeededRandom(seed + question.id.charCodeAt(0));
+  const originalChoices = [...question.choices];
+  const shuffledChoices = shuffleArray(originalChoices, random);
+  
+  // Map old index to new index
+  const indexMap = new Map<number, number>();
+  shuffledChoices.forEach((choice, newIndex) => {
+    const oldIndex = originalChoices.indexOf(choice);
+    indexMap.set(oldIndex, newIndex);
+  });
+  
+  // Update correct answer if it's a letter
+  let newCorrectAnswer = question.correctAnswer;
+  if (typeof question.correctAnswer === 'string' && /^[A-D]$/.test(question.correctAnswer)) {
+    const oldIndex = question.correctAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
+    const newIndex = indexMap.get(oldIndex) ?? oldIndex;
+    newCorrectAnswer = String.fromCharCode('A'.charCodeAt(0) + newIndex);
+  }
+  
+  return {
+    ...question,
+    choices: shuffledChoices,
+    correctAnswer: newCorrectAnswer
+  };
+}
+
 interface Question {
   id: string;
   type: 'ABCD' | 'TRUEFALSE' | 'NUMBER';
   question: string;
   choices?: string[];
+  options?: Array<{ text: string }>;
   image?: string;
   points: number;
   correctAnswer?: string | number | boolean;
+  correct?: string | number | boolean;
 }
 
 interface Lesson {
@@ -36,6 +112,15 @@ interface Lesson {
   grade: string;
   questions: Question[];
   description?: string;
+  shuffleQuestions?: boolean;
+  shuffleAnswers?: boolean;
+  randomizationSeed?: number;
+  timeLimitEnabled?: boolean;
+  timeLimitHours?: number;
+  timeLimitMinutes?: number;
+  timeLimitSeconds?: number;
+  showCountdown?: boolean;
+  autoSubmit?: boolean;
 }
 
 interface Answer {
@@ -65,6 +150,9 @@ export default function LessonPage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [fontSize, setFontSize] = useState(16);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
+  const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timer effect
   useEffect(() => {
@@ -78,6 +166,29 @@ export default function LessonPage() {
       }
     };
   }, [startTime]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (lesson?.timeLimitEnabled && remainingTime !== null && remainingTime > 0) {
+      countdownRef.current = setInterval(() => {
+        setRemainingTime(prev => {
+          if (prev === null || prev <= 1) {
+            if (lesson.autoSubmit && prev === 1) {
+              handleSubmit();
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current);
+        }
+      };
+    }
+  }, [lesson?.timeLimitEnabled, lesson?.autoSubmit, remainingTime]);
 
   // Fetch lesson data
   useEffect(() => {
@@ -138,9 +249,32 @@ export default function LessonPage() {
         
         setLesson(transformedLesson);
         
+        // Apply shuffling if enabled
+        let questionsToUse = transformedLesson.questions;
+        if (transformedLesson.shuffleQuestions) {
+          // Use randomizationSeed if provided, otherwise generate a random seed
+          const seed = transformedLesson.randomizationSeed || Math.floor(Math.random() * 100000);
+          questionsToUse = applyQuestionShuffling(transformedLesson.questions, seed);
+          
+          // Apply answer shuffling if enabled
+          if (transformedLesson.shuffleAnswers) {
+            questionsToUse = questionsToUse.map((q: Question) => applyAnswerShuffling(q, seed));
+          }
+        }
+        setShuffledQuestions(questionsToUse);
+        
+        // Calculate initial remaining time if timer is enabled
+        if (transformedLesson.timeLimitEnabled) {
+          const totalSeconds = 
+            (transformedLesson.timeLimitHours || 0) * 3600 +
+            (transformedLesson.timeLimitMinutes || 0) * 60 +
+            (transformedLesson.timeLimitSeconds || 0);
+          setRemainingTime(totalSeconds);
+        }
+        
         // Initialize answers map
         const initialAnswers = new Map<string, Answer>();
-        transformedLesson.questions.forEach((q: Question) => {
+        questionsToUse.forEach((q: Question) => {
           initialAnswers.set(q.id, {
             questionId: q.id,
             answer: null,
@@ -164,6 +298,17 @@ export default function LessonPage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  const formatCountdownTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const renderLatex = (text: string) => {
@@ -255,7 +400,7 @@ export default function LessonPage() {
       });
 
       const response = await apiClient.post('/results', {
-        lessonId,
+        lessonId: lessonId,
         answers: answersArray,
         timeTaken: elapsedTime,
         studentInfo: {
@@ -319,8 +464,32 @@ export default function LessonPage() {
     );
   }
 
-  const currentQuestion = lesson.questions[currentQuestionIndex];
-  const currentAnswer = answers.get(currentQuestion.id);
+  // Use shuffled questions if available, otherwise use original questions
+  const questionsToDisplay = shuffledQuestions.length > 0 ? shuffledQuestions : (lesson?.questions || []);
+  const currentQuestion = questionsToDisplay[currentQuestionIndex];
+  const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) : undefined;
+  
+  // Guard against missing data
+  if (!lesson || questionsToDisplay.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              <p>No questions available</p>
+            </div>
+            <Button 
+              className="mt-4 w-full" 
+              onClick={() => router.push('/lessons')}
+            >
+              Back to Lessons
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -382,6 +551,12 @@ export default function LessonPage() {
                 <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span data-testid="timer-display">{formatTime(elapsedTime)}</span>
               </div>
+              {lesson.timeLimitEnabled && lesson.showCountdown && remainingTime !== null && (
+                <div className="flex items-center gap-1 text-destructive">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span data-testid="countdown-timer">{formatCountdownTime(remainingTime)}</span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -445,7 +620,7 @@ export default function LessonPage() {
             className="flex flex-wrap gap-2" 
             data-testid="question-navigation"
           >
-            {lesson.questions.map((question, index) => {
+            {questionsToDisplay.map((question, index) => {
               const answer = answers.get(question.id);
               const isAnswered = answer?.answer !== null;
               const isActive = index === currentQuestionIndex;
@@ -634,7 +809,7 @@ export default function LessonPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Câu {currentQuestionIndex + 1}</span>
-              <Badge variant="outline">{currentQuestion.points.toFixed(1)} điểm</Badge>
+              <Badge variant="outline">{currentQuestion?.points?.toFixed(1) || '0.0'} điểm</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -644,21 +819,22 @@ export default function LessonPage() {
             >
               <div 
                 data-testid="question-content"
-                data-testid-2={`question-type-${currentQuestionIndex}`}
-                data-type={currentQuestion.type}
               >
-                {renderLatex(currentQuestion.question)}
+                <span data-testid={`question-type-${currentQuestionIndex}`} data-type={currentQuestion?.type || ''} className="sr-only">
+                  {currentQuestion?.type || ''}
+                </span>
+                {renderLatex(currentQuestion?.question || '')}
               </div>
             </div>
 
             {/* Question Image */}
-            {currentQuestion.image && (
+            {currentQuestion?.image && (
               <div 
                 className="mb-6" 
                 data-testid="question-image-container"
               >
                 <img
-                  src={currentQuestion.image}
+                  src={currentQuestion?.image || ''}
                   alt="Question illustration"
                   className="max-w-full h-auto rounded-lg"
                   data-testid={`question-image-${currentQuestionIndex}`}
@@ -668,9 +844,9 @@ export default function LessonPage() {
 
             {/* Answer Options */}
             <div className="space-y-4">
-              {currentQuestion.type === 'ABCD' && currentQuestion.choices && (
+              {currentQuestion?.type === 'ABCD' && currentQuestion?.choices && (
                 <div className="grid gap-3">
-                  {currentQuestion.choices.map((choice, idx) => {
+                  {currentQuestion?.choices?.map((choice, idx) => {
                     const choiceLabel = String.fromCharCode(65 + idx); // A, B, C, D
                     const isSelected = currentAnswer?.answer === choiceLabel;
                     return (
@@ -680,7 +856,7 @@ export default function LessonPage() {
                           "cursor-pointer transition-all hover:shadow-md",
                           isSelected && "ring-2 ring-primary border-primary bg-primary/5"
                         )}
-                        onClick={() => handleAnswerChange(currentQuestion.id, choiceLabel)}
+                        onClick={() => handleAnswerChange(currentQuestion?.id || '', choiceLabel)}
                         data-testid={`choice-${currentQuestionIndex}-${choiceLabel}`}
                         data-selected={isSelected}
                       >
@@ -704,9 +880,9 @@ export default function LessonPage() {
                 </div>
               )}
 
-              {currentQuestion.type === 'TRUEFALSE' && (
-                <div className="space-y-4">
-                  {currentQuestion.choices ? (
+              {currentQuestion?.type === 'TRUEFALSE' && (
+                <div className="space-y-4" data-testid={`truefalse-container-${currentQuestionIndex}`}>
+                  {currentQuestion?.choices ? (
                     // Multiple sub-statements format
                     currentQuestion.choices.map((statement, idx) => {
                       const statementLabel = String.fromCharCode(65 + idx); // A, B, C, D
@@ -728,7 +904,7 @@ export default function LessonPage() {
                                 onClick={() => {
                                   const newAnswer = { ...(currentAnswer?.answer as any || {}) };
                                   newAnswer[statementLabel] = true;
-                                  handleAnswerChange(currentQuestion.id, newAnswer);
+                                  handleAnswerChange(currentQuestion?.id || '', newAnswer);
                                 }}
                                 className="min-w-[80px] sm:min-w-[100px] h-10 sm:h-11"
                               >
@@ -740,7 +916,7 @@ export default function LessonPage() {
                                 onClick={() => {
                                   const newAnswer = { ...(currentAnswer?.answer as any || {}) };
                                   newAnswer[statementLabel] = false;
-                                  handleAnswerChange(currentQuestion.id, newAnswer);
+                                  handleAnswerChange(currentQuestion?.id || '', newAnswer);
                                 }}
                                 className="min-w-[80px] sm:min-w-[100px] h-10 sm:h-11"
                               >
@@ -756,14 +932,14 @@ export default function LessonPage() {
                     <div className="flex gap-3 sm:gap-4 justify-center">
                       <Button
                         variant={currentAnswer?.answer === true ? "default" : "outline"}
-                        onClick={() => handleAnswerChange(currentQuestion.id, true)}
+                        onClick={() => handleAnswerChange(currentQuestion?.id || '', true)}
                         className="min-w-[120px] sm:min-w-[140px] h-10 sm:h-12"
                       >
                         Đúng
                       </Button>
                       <Button
                         variant={currentAnswer?.answer === false ? "default" : "outline"}
-                        onClick={() => handleAnswerChange(currentQuestion.id, false)}
+                        onClick={() => handleAnswerChange(currentQuestion?.id || '', false)}
                         className="min-w-[120px] sm:min-w-[140px] h-10 sm:h-12"
                       >
                         Sai
@@ -773,13 +949,13 @@ export default function LessonPage() {
                 </div>
               )}
 
-              {currentQuestion.type === 'NUMBER' && (
+              {currentQuestion?.type === 'NUMBER' && (
                 <div className="max-w-xs mx-auto">
                   <Input
                     type="number"
                     placeholder="Nhập câu trả lời"
                     value={currentAnswer?.answer as number || ''}
-                    onChange={(e) => handleAnswerChange(currentQuestion.id, Number(e.target.value))}
+                    onChange={(e) => handleAnswerChange(currentQuestion?.id || '', Number(e.target.value))}
                     data-testid={`number-input-${currentQuestionIndex}`}
                     className="text-center h-12"
                   />
@@ -809,7 +985,7 @@ export default function LessonPage() {
               variant="outline"
               size="lg"
               onClick={() => setCurrentQuestionIndex(prev => Math.min(lesson.questions.length - 1, prev + 1))}
-              disabled={currentQuestionIndex === lesson.questions.length - 1}
+              disabled={currentQuestionIndex === questionsToDisplay.length - 1}
               data-testid="next-question"
               className="h-12 px-6"
             >
@@ -824,7 +1000,7 @@ export default function LessonPage() {
               className="grid grid-cols-8 gap-1.5" 
               data-testid="question-navigation-mobile"
             >
-              {lesson.questions.map((question, index) => {
+              {questionsToDisplay.map((question, index) => {
                 const answer = answers.get(question.id);
                 const isAnswered = answer?.answer !== null;
                 const isActive = index === currentQuestionIndex;
