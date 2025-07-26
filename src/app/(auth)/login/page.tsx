@@ -1,63 +1,80 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useStudentLogin } from '@/lib/hooks/useAuth';
-import { useAuthStore } from '@/lib/stores/auth';
-import { extractErrorMessage, getErrorHelp } from '@/lib/utils/errorHandler';
-import { Loader2, Phone, Mail } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
-import { FaGoogle, FaFacebook } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useStudentLogin } from "@/lib/hooks/useAuth";
+import { useAuthStore } from "@/lib/stores/auth";
+import { extractErrorMessage, getErrorHelp } from "@/lib/utils/errorHandler";
+import { Loader2, Phone, Mail } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
 
 const phoneSchema = z.object({
-  phone_number: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại phải có 10 chữ số'),
-  password: z.string().min(1, 'Mật khẩu là bắt buộc'),
+  phone_number: z
+    .string()
+    .regex(/^[0-9]{10}$/, "Số điện thoại phải có 10 chữ số"),
+  password: z.string().min(1, "Mật khẩu là bắt buộc"),
 });
 
 type PhoneFormData = z.infer<typeof phoneSchema>;
 
-type SignInMethod = 'phone' | 'email' | 'google' | 'facebook' | null;
+type SignInMethod = "phone" | "email" | "google" | "facebook" | null;
 
 export default function LoginPage() {
   const [selectedMethod, setSelectedMethod] = useState<SignInMethod>(null);
-  const [deviceId, setDeviceId] = useState<string>('');
+  const [deviceId, setDeviceId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [errorHelp, setErrorHelp] = useState<string | null>(null);
   const studentLogin = useStudentLogin();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/';
+  const returnUrl = searchParams.get("returnUrl") || "/";
   const { user } = useAuthStore();
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push("/");
     }
   }, [user, router]);
 
   const phoneForm = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
     defaultValues: {
-      phone_number: '',
-      password: '',
+      phone_number: "",
+      password: "",
     },
   });
 
   // Generate device ID on client side only
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const id = btoa(
-        `${navigator.userAgent}-${window.screen.width}x${window.screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`
-      ).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+        `${navigator.userAgent}-${window.screen.width}x${window.screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
+      )
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .substring(0, 32);
       setDeviceId(id);
     }
   }, []);
@@ -66,13 +83,13 @@ export default function LoginPage() {
     // Clear previous errors
     setError(null);
     setErrorHelp(null);
-    
+
     // Ensure device ID is available before submitting
     if (!deviceId) {
-      setError('Không thể xác định thiết bị. Vui lòng tải lại trang.');
+      setError("Không thể xác định thiết bị. Vui lòng tải lại trang.");
       return;
     }
-    
+
     studentLogin.mutate(
       { ...data, deviceId },
       {
@@ -82,13 +99,13 @@ export default function LoginPage() {
         onError: (err) => {
           const errorMessage = extractErrorMessage(err);
           setError(errorMessage);
-          
+
           const helpMessage = getErrorHelp(errorMessage);
           if (helpMessage) {
             setErrorHelp(helpMessage);
           }
-        }
-      }
+        },
+      },
     );
   };
 
@@ -100,36 +117,36 @@ export default function LoginPage() {
 
   const signInMethods = [
     {
-      id: 'google',
-      name: 'Đăng nhập với Google',
+      id: "google",
+      name: "Đăng nhập với Google",
       icon: FaGoogle,
-      bgColor: 'bg-white hover:bg-gray-50',
-      textColor: 'text-gray-700',
-      borderColor: 'border-gray-300',
+      bgColor: "bg-white hover:bg-gray-50",
+      textColor: "text-gray-700",
+      borderColor: "border-gray-300",
     },
     {
-      id: 'facebook',
-      name: 'Đăng nhập với Facebook',
+      id: "facebook",
+      name: "Đăng nhập với Facebook",
       icon: FaFacebook,
-      bgColor: 'bg-white hover:bg-gray-50',
-      textColor: 'text-gray-700',
-      borderColor: 'border-gray-300',
+      bgColor: "bg-white hover:bg-gray-50",
+      textColor: "text-gray-700",
+      borderColor: "border-gray-300",
     },
     {
-      id: 'email',
-      name: 'Email',
+      id: "email",
+      name: "Email",
       icon: Mail,
-      bgColor: 'bg-white hover:bg-gray-50',
-      textColor: 'text-gray-700',
-      borderColor: 'border-gray-300',
+      bgColor: "bg-white hover:bg-gray-50",
+      textColor: "text-gray-700",
+      borderColor: "border-gray-300",
     },
     {
-      id: 'phone',
-      name: 'Số điện thoại',
+      id: "phone",
+      name: "Số điện thoại",
       icon: Phone,
-      bgColor: 'bg-white hover:bg-gray-50',
-      textColor: 'text-gray-700',
-      borderColor: 'border-gray-300',
+      bgColor: "bg-white hover:bg-gray-50",
+      textColor: "text-gray-700",
+      borderColor: "border-gray-300",
     },
   ];
 
@@ -138,9 +155,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md mx-auto shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Đăng nhập</CardTitle>
-          <CardDescription>
-            Chọn phương thức đăng nhập của bạn
-          </CardDescription>
+          <CardDescription>Chọn phương thức đăng nhập của bạn</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <AnimatePresence mode="wait">
@@ -158,14 +173,18 @@ export default function LoginPage() {
                     key={method.id}
                     variant="outline"
                     className={`w-full h-12 justify-start px-4 ${method.bgColor} ${method.textColor} border ${method.borderColor} transition-all duration-200`}
-                    onClick={() => handleMethodSelect(method.id as SignInMethod)}
+                    onClick={() =>
+                      handleMethodSelect(method.id as SignInMethod)
+                    }
                   >
-                    <method.icon className={`mr-3 h-5 w-5 ${method.id === 'facebook' ? 'text-blue-600' : method.id === 'google' ? 'text-gray-600' : 'text-gray-600'}`} />
+                    <method.icon
+                      className={`mr-3 h-5 w-5 ${method.id === "facebook" ? "text-blue-600" : method.id === "google" ? "text-gray-600" : "text-gray-600"}`}
+                    />
                     {method.name}
                   </Button>
                 ))}
               </motion.div>
-            ) : selectedMethod === 'phone' ? (
+            ) : selectedMethod === "phone" ? (
               <motion.div
                 key="phone-form"
                 initial={{ opacity: 0, x: 20 }}
@@ -174,7 +193,10 @@ export default function LoginPage() {
                 transition={{ duration: 0.3 }}
               >
                 <Form {...phoneForm}>
-                  <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4">
+                  <form
+                    onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
+                    className="space-y-4"
+                  >
                     <FormField
                       control={phoneForm.control}
                       name="phone_number"
@@ -182,9 +204,9 @@ export default function LoginPage() {
                         <FormItem>
                           <FormLabel>Số điện thoại</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="0987654321" 
-                              {...field} 
+                            <Input
+                              placeholder="0987654321"
+                              {...field}
                               className="h-12"
                             />
                           </FormControl>
@@ -199,9 +221,9 @@ export default function LoginPage() {
                         <FormItem>
                           <FormLabel>Mật khẩu</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
-                              {...field} 
+                            <Input
+                              type="password"
+                              {...field}
                               className="h-12"
                             />
                           </FormControl>
@@ -209,10 +231,10 @@ export default function LoginPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="text-right">
-                      <Link 
-                        href="/forgot-password" 
+                      <Link
+                        href="/forgot-password"
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
                       >
                         Quên mật khẩu?
@@ -238,12 +260,14 @@ export default function LoginPage() {
                       </motion.div>
                     )}
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="w-full h-12 bg-blue-600 hover:bg-blue-700"
                       disabled={studentLogin.isPending || !deviceId}
                     >
-                      {studentLogin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {studentLogin.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
                       Đăng nhập
                     </Button>
 
@@ -290,9 +314,9 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center text-sm">
-            Chưa có tài khoản?{' '}
-            <Link 
-              href="/register" 
+            Chưa có tài khoản?{" "}
+            <Link
+              href="/register"
               className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
             >
               Đăng ký ngay

@@ -76,7 +76,7 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
 
         {/* Menu items */}
         <div className="space-y-1">
-          {menuItems.map((item, index) => (
+          {menuItems.map((item, index) =>
             item.href ? (
               <Link
                 key={index}
@@ -98,8 +98,8 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>
               </button>
-            )
-          ))}
+            ),
+          )}
         </div>
       </div>
     );
@@ -132,10 +132,14 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
           >
             <div className="py-1">
               <div className="px-4 py-3 border-b">
-                <p className="text-sm font-medium">{user?.full_name || user?.username || "Học sinh"}</p>
-                <p className="text-xs text-gray-500">{user?.phone_number || user?.email}</p>
+                <p className="text-sm font-medium">
+                  {user?.full_name || user?.username || "Học sinh"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {user?.phone_number || user?.email}
+                </p>
               </div>
-              {menuItems.map((item, index) => (
+              {menuItems.map((item, index) =>
                 item.href ? (
                   <Link
                     key={index}
@@ -157,8 +161,8 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
                     <item.icon className="w-4 h-4" />
                     <span>{item.label}</span>
                   </button>
-                )
-              ))}
+                ),
+              )}
             </div>
           </motion.div>
         )}

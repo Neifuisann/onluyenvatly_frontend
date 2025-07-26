@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 interface ClientOnlyProps {
   children: React.ReactNode;
@@ -8,7 +8,11 @@ interface ClientOnlyProps {
   suppressHydrationWarning?: boolean;
 }
 
-export function ClientOnly({ children, fallback = null, suppressHydrationWarning = false }: ClientOnlyProps) {
+export function ClientOnly({
+  children,
+  fallback = null,
+  suppressHydrationWarning = false,
+}: ClientOnlyProps) {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {

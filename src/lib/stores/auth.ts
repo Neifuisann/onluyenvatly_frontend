@@ -1,12 +1,12 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { authApi, User } from '@/lib/api/auth';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { authApi, User } from "@/lib/api/auth";
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
           set({ user: null, isLoading: false });
           // Don't set error for 401, as it's expected when not logged in
           if ((error as any)?.response?.status !== 401) {
-            set({ error: 'Failed to check authentication' });
+            set({ error: "Failed to check authentication" });
           }
         }
       },
@@ -53,32 +53,31 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: null,
             isLoading: false,
-            error: null
+            error: null,
           });
 
           // Manually clear localStorage after state update
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             try {
-              localStorage.removeItem('auth-storage');
-              sessionStorage.removeItem('auth-storage');
+              localStorage.removeItem("auth-storage");
+              sessionStorage.removeItem("auth-storage");
             } catch {
               // Silently fail if storage is not available
             }
           }
-
         } catch (error) {
           // Even if API call fails, clear local state
           set({
             user: null,
             isLoading: false,
-            error: 'Logout completed with errors'
+            error: "Logout completed with errors",
           });
 
           // Manually clear localStorage even on error
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             try {
-              localStorage.removeItem('auth-storage');
-              sessionStorage.removeItem('auth-storage');
+              localStorage.removeItem("auth-storage");
+              sessionStorage.removeItem("auth-storage");
             } catch {
               // Silently fail if storage is not available
             }
@@ -87,11 +86,11 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({ user: state.user }), // Only persist user data
       storage: createJSONStorage(() => ({
         getItem: (name) => {
-          if (typeof window === 'undefined') return null;
+          if (typeof window === "undefined") return null;
           try {
             const item = localStorage.getItem(name);
             return item;
@@ -100,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
           }
         },
         setItem: (name, value) => {
-          if (typeof window === 'undefined') return;
+          if (typeof window === "undefined") return;
           try {
             // Don't persist if user is null (logged out)
             const parsed = JSON.parse(value);
@@ -114,7 +113,7 @@ export const useAuthStore = create<AuthState>()(
           }
         },
         removeItem: (name) => {
-          if (typeof window === 'undefined') return;
+          if (typeof window === "undefined") return;
           try {
             localStorage.removeItem(name);
           } catch {
@@ -122,6 +121,6 @@ export const useAuthStore = create<AuthState>()(
           }
         },
       })),
-    }
-  )
+    },
+  ),
 );

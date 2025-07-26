@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient from "./client";
 
 export interface Lesson {
   id: number;
@@ -9,7 +9,7 @@ export interface Lesson {
   thumbnail?: string;
   lessonImage?: string;
   tags: string[];
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   duration_minutes?: number;
   created_at: string;
   updated_at: string;
@@ -27,7 +27,7 @@ export interface LessonFilters {
   difficulty?: string;
   tags?: string[] | string;
   search?: string;
-  sort?: 'newest' | 'oldest' | 'az' | 'za' | 'popular';
+  sort?: "newest" | "oldest" | "az" | "za" | "popular";
   page?: number;
   limit?: number;
 }
@@ -47,7 +47,7 @@ export interface LessonDetail extends Lesson {
 export const lessonsApi = {
   // Get all lessons with filters
   getLessons: async (filters?: LessonFilters) => {
-    const response = await apiClient.get('/lessons', { params: filters });
+    const response = await apiClient.get("/lessons", { params: filters });
     return response.data;
   },
 
@@ -59,7 +59,9 @@ export const lessonsApi = {
 
   // Search lessons
   searchLessons: async (query: string) => {
-    const response = await apiClient.get('/lessons/search', { params: { q: query } });
+    const response = await apiClient.get("/lessons/search", {
+      params: { q: query },
+    });
     return response.data;
   },
 
@@ -71,19 +73,19 @@ export const lessonsApi = {
 
   // Get user's lesson progress
   getUserLessonProgress: async () => {
-    const response = await apiClient.get('/progress/lessons');
+    const response = await apiClient.get("/progress/lessons");
     return response.data;
   },
 
   // Get recommended lessons
   getRecommendedLessons: async () => {
-    const response = await apiClient.get('/lessons/recommended');
+    const response = await apiClient.get("/lessons/recommended");
     return response.data;
   },
 
   // Get trending lessons
   getTrendingLessons: async () => {
-    const response = await apiClient.get('/lessons/trending');
+    const response = await apiClient.get("/lessons/trending");
     return response.data;
   },
 };

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useAuthStore } from '@/lib/stores/auth';
-import { EncryptionService } from '@/lib/crypto/encryption';
+import { useEffect } from "react";
+import { useAuthStore } from "@/lib/stores/auth";
+import { EncryptionService } from "@/lib/crypto/encryption";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { checkAuth, user } = useAuthStore();

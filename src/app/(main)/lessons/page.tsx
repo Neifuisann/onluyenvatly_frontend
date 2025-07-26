@@ -1,19 +1,46 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'motion/react';
-import { lessonsApi, type Lesson } from '@/lib/api/lessons';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, BookOpen, Clock, Eye, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { getStockImage } from '@/lib/stock-images';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
+import { lessonsApi, type Lesson } from "@/lib/api/lessons";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  BookOpen,
+  Clock,
+  Eye,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getStockImage } from "@/lib/stock-images";
 
 export default function LessonsPage() {
   const router = useRouter();
@@ -23,19 +50,31 @@ export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'az' | 'za' | 'popular'>(
-    (searchParams.get('sort') as 'newest' | 'oldest' | 'az' | 'za' | 'popular') || 'newest'
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
+  );
+  const [sortBy, setSortBy] = useState<
+    "newest" | "oldest" | "az" | "za" | "popular"
+  >(
+    (searchParams.get("sort") as
+      | "newest"
+      | "oldest"
+      | "az"
+      | "za"
+      | "popular") || "newest",
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
-    const tags = searchParams.get('tags');
-    return tags ? tags.split(',') : [];
+    const tags = searchParams.get("tags");
+    return tags ? tags.split(",") : [];
   });
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("page") || "1"),
+  );
   const [totalPages, setTotalPages] = useState(1);
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [searchDebounceTimer, setSearchDebounceTimer] =
+    useState<NodeJS.Timeout | null>(null);
   const [allTags, setAllTags] = useState<Map<string, number>>(new Map());
   const [allLessons, setAllLessons] = useState<Lesson[]>([]); // Store all lessons for tag calculation
 
@@ -44,10 +83,10 @@ export default function LessonsPage() {
   // Calculate available tags based on current lessons
   const calculateAvailableTags = useCallback((lessonsData: Lesson[]) => {
     const tagCount = new Map<string, number>();
-    
-    lessonsData.forEach(lesson => {
+
+    lessonsData.forEach((lesson) => {
       if (lesson.tags && Array.isArray(lesson.tags)) {
-        lesson.tags.forEach(tag => {
+        lesson.tags.forEach((tag) => {
           if (tag) {
             tagCount.set(tag, (tagCount.get(tag) || 0) + 1);
           }
@@ -56,113 +95,131 @@ export default function LessonsPage() {
     });
 
     // Sort tags by popularity (count)
-    const sortedTags = new Map([...tagCount.entries()].sort((a, b) => b[1] - a[1]));
+    const sortedTags = new Map(
+      [...tagCount.entries()].sort((a, b) => b[1] - a[1]),
+    );
     setAllTags(sortedTags);
   }, []);
 
   // Debounced search function
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSearch = useCallback((query: string) => {
-    if (searchDebounceTimer) {
-      clearTimeout(searchDebounceTimer);
-    }
+  const debouncedSearch = useCallback(
+    (query: string) => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
 
-    const timer = setTimeout(() => {
-      fetchLessons({ search: query, page: 1 });
-    }, 500);
+      const timer = setTimeout(() => {
+        fetchLessons({ search: query, page: 1 });
+      }, 500);
 
-    setSearchDebounceTimer(timer);
-  }, [searchDebounceTimer]);
+      setSearchDebounceTimer(timer);
+    },
+    [searchDebounceTimer],
+  );
 
   // Fetch lessons from API
-  const fetchLessons = useCallback(async (options?: {
-    search?: string;
-    sort?: string;
-    tags?: string[];
-    page?: number;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchLessons = useCallback(
+    async (options?: {
+      search?: string;
+      sort?: string;
+      tags?: string[];
+      page?: number;
+    }) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = {
-        search: options?.search ?? searchQuery,
-        sort: (options?.sort ?? sortBy) as 'newest' | 'oldest' | 'az' | 'za' | 'popular',
-        tags: options?.tags ?? selectedTags,
-        page: options?.page ?? currentPage,
-        limit: LESSONS_PER_PAGE,
-      };
+        const params = {
+          search: options?.search ?? searchQuery,
+          sort: (options?.sort ?? sortBy) as
+            | "newest"
+            | "oldest"
+            | "az"
+            | "za"
+            | "popular",
+          tags: options?.tags ?? selectedTags,
+          page: options?.page ?? currentPage,
+          limit: LESSONS_PER_PAGE,
+        };
 
-      const response = await lessonsApi.getLessons(params);
-      
-      if (response.success || response.lessons) {
-        const lessonsData = response.lessons || [];
-        setLessons(lessonsData);
+        const response = await lessonsApi.getLessons(params);
 
-        setTotalPages(Math.ceil((response.total || 0) / LESSONS_PER_PAGE));
-        setCurrentPage(response.page || 1);
-        
-        // Always fetch all lessons once to maintain tag state
-        if (allLessons.length === 0 || selectedTags.length === 0) {
-          const allLessonsResponse = await lessonsApi.getLessons({ limit: 100 });
-          if (allLessonsResponse.lessons) {
-            setAllLessons(allLessonsResponse.lessons);
-            calculateAvailableTags(allLessonsResponse.lessons);
+        if (response.success || response.lessons) {
+          const lessonsData = response.lessons || [];
+          setLessons(lessonsData);
+
+          setTotalPages(Math.ceil((response.total || 0) / LESSONS_PER_PAGE));
+          setCurrentPage(response.page || 1);
+
+          // Always fetch all lessons once to maintain tag state
+          if (allLessons.length === 0 || selectedTags.length === 0) {
+            const allLessonsResponse = await lessonsApi.getLessons({
+              limit: 100,
+            });
+            if (allLessonsResponse.lessons) {
+              setAllLessons(allLessonsResponse.lessons);
+              calculateAvailableTags(allLessonsResponse.lessons);
+            }
           }
         }
+      } catch (err) {
+        console.error("Error fetching lessons:", err);
+        setError("Không thể tải danh sách bài học. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching lessons:', err);
-      setError('Không thể tải danh sách bài học. Vui lòng thử lại sau.');
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, sortBy, selectedTags, currentPage, calculateAvailableTags]);
+    },
+    [searchQuery, sortBy, selectedTags, currentPage, calculateAvailableTags],
+  );
 
   // Update URL params
-  const updateUrlParams = useCallback((params: Record<string, string | string[]>) => {
-    const url = new URL(window.location.href);
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value && (Array.isArray(value) ? value.length > 0 : value !== '')) {
-        if (Array.isArray(value)) {
-          url.searchParams.set(key, value.join(','));
-        } else {
-          url.searchParams.set(key, value);
-        }
-      } else {
-        url.searchParams.delete(key);
-      }
-    });
+  const updateUrlParams = useCallback(
+    (params: Record<string, string | string[]>) => {
+      const url = new URL(window.location.href);
 
-    router.push(url.pathname + url.search);
-  }, [router]);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && (Array.isArray(value) ? value.length > 0 : value !== "")) {
+          if (Array.isArray(value)) {
+            url.searchParams.set(key, value.join(","));
+          } else {
+            url.searchParams.set(key, value);
+          }
+        } else {
+          url.searchParams.delete(key);
+        }
+      });
+
+      router.push(url.pathname + url.search);
+    },
+    [router],
+  );
 
   // Handle search input
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     debouncedSearch(value);
-    updateUrlParams({ search: value, page: '1' });
+    updateUrlParams({ search: value, page: "1" });
   };
 
   // Handle sort change
   const handleSortChange = (value: string) => {
-    setSortBy(value as 'newest' | 'oldest' | 'az' | 'za' | 'popular');
+    setSortBy(value as "newest" | "oldest" | "az" | "za" | "popular");
     setCurrentPage(1);
     fetchLessons({ sort: value, page: 1 });
-    updateUrlParams({ sort: value, page: '1' });
+    updateUrlParams({ sort: value, page: "1" });
   };
 
   // Handle tag selection
   const handleTagClick = (tag: string) => {
     const newTags = selectedTags.includes(tag)
-      ? selectedTags.filter(t => t !== tag)
+      ? selectedTags.filter((t) => t !== tag)
       : [...selectedTags, tag];
-    
+
     setSelectedTags(newTags);
     setCurrentPage(1);
     fetchLessons({ tags: newTags, page: 1 });
-    updateUrlParams({ tags: newTags, page: '1' });
+    updateUrlParams({ tags: newTags, page: "1" });
   };
 
   // Handle page change
@@ -170,7 +227,7 @@ export default function LessonsPage() {
     setCurrentPage(page);
     fetchLessons({ page });
     updateUrlParams({ page: page.toString() });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Handle lesson card click
@@ -202,11 +259,11 @@ export default function LessonsPage() {
 
   // Sort options for select
   const sortOptions = [
-    { value: 'newest', label: 'Mới nhất' },
-    { value: 'oldest', label: 'Cũ nhất' },
-    { value: 'az', label: 'A-Z' },
-    { value: 'za', label: 'Z-A' },
-    { value: 'popular', label: 'Xem nhiều nhất' },
+    { value: "newest", label: "Mới nhất" },
+    { value: "oldest", label: "Cũ nhất" },
+    { value: "az", label: "A-Z" },
+    { value: "za", label: "Z-A" },
+    { value: "popular", label: "Xem nhiều nhất" },
   ];
 
   // Available tags for filtering (with bidirectional support)
@@ -218,11 +275,11 @@ export default function LessonsPage() {
     // Create a map to store original tag order and counts
     const tagOrderMap = new Map<string, number>();
     let orderIndex = 0;
-    
+
     // First pass: collect all tags with their original order
-    allLessons.forEach(lesson => {
+    allLessons.forEach((lesson) => {
       if (lesson.tags && Array.isArray(lesson.tags)) {
-        lesson.tags.forEach(tag => {
+        lesson.tags.forEach((tag) => {
           if (tag && !tagOrderMap.has(tag)) {
             tagOrderMap.set(tag, orderIndex++);
           }
@@ -242,16 +299,18 @@ export default function LessonsPage() {
 
     // When tags are selected, calculate which tags would be compatible
     const compatibleTagsMap = new Map<string, number>();
-    
+
     // Filter lessons that have ALL selected tags
-    const filteredLessons = allLessons.filter(lesson => {
+    const filteredLessons = allLessons.filter((lesson) => {
       if (!lesson.tags || lesson.tags.length === 0) return false;
-      return selectedTags.every(selectedTag => lesson.tags.includes(selectedTag));
+      return selectedTags.every((selectedTag) =>
+        lesson.tags.includes(selectedTag),
+      );
     });
 
     // Count tags from filtered lessons
-    filteredLessons.forEach(lesson => {
-      lesson.tags.forEach(tag => {
+    filteredLessons.forEach((lesson) => {
+      lesson.tags.forEach((tag) => {
         if (tag) {
           compatibleTagsMap.set(tag, (compatibleTagsMap.get(tag) || 0) + 1);
         }
@@ -276,7 +335,9 @@ export default function LessonsPage() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-4xl font-bold mb-2">Bài học Vật lý</h1>
-          <p className="text-gray-600 mb-8">Khám phá kho tàng kiến thức Vật lý lớp 12</p>
+          <p className="text-gray-600 mb-8">
+            Khám phá kho tàng kiến thức Vật lý lớp 12
+          </p>
         </motion.div>
 
         {/* Search and Sort Controls */}
@@ -300,11 +361,14 @@ export default function LessonsPage() {
             </div>
           </div>
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-full md:w-[200px]" data-testid="sort-select">
+            <SelectTrigger
+              className="w-full md:w-[200px]"
+              data-testid="sort-select"
+            >
               <SelectValue placeholder="Sắp xếp theo" />
             </SelectTrigger>
             <SelectContent>
-              {sortOptions.map(option => (
+              {sortOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -314,21 +378,28 @@ export default function LessonsPage() {
         </motion.div>
 
         {/* Lesson Confirmation Dialog */}
-        <Dialog open={!!selectedLesson} onOpenChange={(open) => !open && setSelectedLesson(null)}>
+        <Dialog
+          open={!!selectedLesson}
+          onOpenChange={(open) => !open && setSelectedLesson(null)}
+        >
           <DialogContent className="max-w-2xl" data-testid="lesson-dialog">
             <DialogHeader>
               <DialogTitle className="text-2xl" data-testid="popup-title">
                 {selectedLesson?.title}
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
               {selectedLesson && (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={selectedLesson.thumbnail || selectedLesson.lessonImage || getStockImage(selectedLesson.id)}
-                    alt={selectedLesson.title || ''}
+                    src={
+                      selectedLesson.thumbnail ||
+                      selectedLesson.lessonImage ||
+                      getStockImage(selectedLesson.id)
+                    }
+                    alt={selectedLesson.title || ""}
                     className="w-full h-full object-cover"
                     data-testid="popup-thumbnail"
                     onError={(e) => {
@@ -339,11 +410,14 @@ export default function LessonsPage() {
                 </>
               )}
             </div>
-            
-            <DialogDescription className="text-base" data-testid="popup-description">
-              {selectedLesson?.description || 'Không có mô tả cho bài học này.'}
+
+            <DialogDescription
+              className="text-base"
+              data-testid="popup-description"
+            >
+              {selectedLesson?.description || "Không có mô tả cho bài học này."}
             </DialogDescription>
-            
+
             {selectedLesson?.tags && selectedLesson.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {selectedLesson.tags.map((tag, index) => (
@@ -353,16 +427,16 @@ export default function LessonsPage() {
                 ))}
               </div>
             )}
-            
+
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setSelectedLesson(null)}
                 data-testid="return-button"
               >
                 Quay lại
               </Button>
-              <Button 
+              <Button
                 onClick={handleConfirmLesson}
                 data-testid="confirm-button"
               >
@@ -386,11 +460,17 @@ export default function LessonsPage() {
               {availableTags
                 .sort((a, b) => {
                   // Keep selected tags in their original position
-                  if (selectedTags.includes(a.name) && selectedTags.includes(b.name)) {
+                  if (
+                    selectedTags.includes(a.name) &&
+                    selectedTags.includes(b.name)
+                  ) {
                     return a.order - b.order;
                   }
                   // If not selected, sort by popularity (count) then by original order
-                  if (!selectedTags.includes(a.name) && !selectedTags.includes(b.name)) {
+                  if (
+                    !selectedTags.includes(a.name) &&
+                    !selectedTags.includes(b.name)
+                  ) {
                     if (b.count !== a.count) {
                       return b.count - a.count;
                     }
@@ -399,23 +479,29 @@ export default function LessonsPage() {
                   // Selected tags maintain their position relative to each other
                   return a.order - b.order;
                 })
-                .map(({ name, count, visible }) => (
-                  visible && (
-                    <Badge
-                      key={name}
-                      variant={selectedTags.includes(name) ? "default" : "outline"}
-                      className={cn(
-                        "cursor-pointer transition-all",
-                        selectedTags.includes(name) && "bg-blue-600 hover:bg-blue-700"
-                      )}
-                      onClick={() => handleTagClick(name)}
-                      data-testid={`tag-${name}`}
-                      data-selected={selectedTags.includes(name) ? "true" : undefined}
-                    >
-                      {name} ({count})
-                    </Badge>
-                  )
-                ))}
+                .map(
+                  ({ name, count, visible }) =>
+                    visible && (
+                      <Badge
+                        key={name}
+                        variant={
+                          selectedTags.includes(name) ? "default" : "outline"
+                        }
+                        className={cn(
+                          "cursor-pointer transition-all",
+                          selectedTags.includes(name) &&
+                            "bg-blue-600 hover:bg-blue-700",
+                        )}
+                        onClick={() => handleTagClick(name)}
+                        data-testid={`tag-${name}`}
+                        data-selected={
+                          selectedTags.includes(name) ? "true" : undefined
+                        }
+                      >
+                        {name} ({count})
+                      </Badge>
+                    ),
+                )}
             </div>
           </motion.div>
         )}
@@ -436,7 +522,11 @@ export default function LessonsPage() {
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: LESSONS_PER_PAGE }).map((_, index) => (
-              <Card key={index} className="overflow-hidden" data-testid="loading-skeleton">
+              <Card
+                key={index}
+                className="overflow-hidden"
+                data-testid="loading-skeleton"
+              >
                 <Skeleton className="h-48 w-full" />
                 <CardHeader>
                   <Skeleton className="h-6 w-3/4 mb-2" />
@@ -465,7 +555,7 @@ export default function LessonsPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <Card 
+                  <Card
                     className="h-full cursor-pointer hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                     onClick={() => handleLessonClick(lesson)}
                     data-testid="lesson-card"
@@ -473,7 +563,11 @@ export default function LessonsPage() {
                     <div className="relative h-48 bg-gray-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={lesson.thumbnail || lesson.lessonImage || getStockImage(lesson.id)}
+                        src={
+                          lesson.thumbnail ||
+                          lesson.lessonImage ||
+                          getStockImage(lesson.id)
+                        }
                         alt={lesson.title}
                         className="w-full h-full object-cover"
                         data-testid="lesson-thumbnail"
@@ -482,24 +576,37 @@ export default function LessonsPage() {
                           target.src = getStockImage(lesson.id);
                         }}
                       />
-                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm" data-testid="lesson-views">
+                      <div
+                        className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm"
+                        data-testid="lesson-views"
+                      >
                         <Eye className="inline-block h-3 w-3 mr-1" />
                         {lesson.views || 0}
                       </div>
                     </div>
                     <CardHeader>
-                      <CardTitle className="line-clamp-2" data-testid="lesson-title">
+                      <CardTitle
+                        className="line-clamp-2"
+                        data-testid="lesson-title"
+                      >
                         {lesson.title}
                       </CardTitle>
                       <CardDescription className="space-y-1">
                         <div className="flex items-center gap-2 text-sm">
                           <BookOpen className="h-4 w-4" />
-                          <span data-testid="lesson-subject">{lesson.subject || 'Vật lý'}</span>
+                          <span data-testid="lesson-subject">
+                            {lesson.subject || "Vật lý"}
+                          </span>
                           <span className="text-gray-400">•</span>
-                          <span data-testid="lesson-grade">Lớp {lesson.grade || 12}</span>
+                          <span data-testid="lesson-grade">
+                            Lớp {lesson.grade || 12}
+                          </span>
                         </div>
-                        <p className="line-clamp-2 mt-2" data-testid="lesson-description">
-                          {lesson.description || 'Không có mô tả'}
+                        <p
+                          className="line-clamp-2 mt-2"
+                          data-testid="lesson-description"
+                        >
+                          {lesson.description || "Không có mô tả"}
                         </p>
                       </CardDescription>
                     </CardHeader>
@@ -507,7 +614,11 @@ export default function LessonsPage() {
                       <CardContent className="pt-0">
                         <div className="flex flex-wrap gap-1">
                           {lesson.tags.slice(0, 3).map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {tag}
                             </Badge>
                           ))}
@@ -534,11 +645,13 @@ export default function LessonsPage() {
             className="text-center py-12"
           >
             <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Không tìm thấy bài học nào</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              Không tìm thấy bài học nào
+            </h3>
             <p className="text-gray-600">
               {searchQuery || selectedTags.length > 0
-                ? 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc'
-                : 'Chưa có bài học nào được tạo'}
+                ? "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc"
+                : "Chưa có bài học nào được tạo"}
             </p>
           </motion.div>
         )}

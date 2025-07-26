@@ -9,7 +9,8 @@ const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
   title: "Ôn Luyện Vật Lý - Hệ Thống Học Tập Vật Lý Lớp 12",
-  description: "Nền tảng học tập vật lý trực tuyến cho học sinh lớp 12 với bài giảng tương tác, quiz và theo dõi tiến độ học tập",
+  description:
+    "Nền tảng học tập vật lý trực tuyến cho học sinh lớp 12 với bài giảng tương tác, quiz và theo dõi tiến độ học tập",
 };
 
 export default function RootLayout({
@@ -21,9 +22,7 @@ export default function RootLayout({
     <html lang="vi">
       <body className={inter.className} suppressHydrationWarning>
         <QueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
       </body>
     </html>

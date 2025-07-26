@@ -4,7 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
@@ -43,7 +49,10 @@ export function Navbar() {
             whileTap={{ scale: 0.95 }}
             className="flex-shrink-0 min-w-0"
           >
-            <Link href="/" className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+            <Link
+              href="/"
+              className="text-lg sm:text-xl font-bold text-gray-900 truncate"
+            >
               Vật Lý 12
             </Link>
           </motion.div>
@@ -64,7 +73,7 @@ export function Navbar() {
                       "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                       isActive
                         ? "bg-blue-100 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
                     )}
                   >
                     {item.label}
@@ -100,7 +109,9 @@ export function Navbar() {
               {user && (
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
                   <span className="text-xs font-medium">
-                    {(user?.full_name || user?.username || "U").charAt(0).toUpperCase()}
+                    {(user?.full_name || user?.username || "U")
+                      .charAt(0)
+                      .toUpperCase()}
                   </span>
                 </div>
               )}
@@ -118,55 +129,69 @@ export function Navbar() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[300px] sm:w-[350px] max-w-[85vw] p-0 overflow-y-auto"
-            >
-              <div className="flex flex-col h-full">
-                <SheetHeader className="px-6 py-4 border-b">
-                  <SheetTitle className="text-left">Menu</SheetTitle>
-                </SheetHeader>
+              <SheetContent
+                side="right"
+                className="w-[300px] sm:w-[350px] max-w-[85vw] p-0 overflow-y-auto"
+              >
+                <div className="flex flex-col h-full">
+                  <SheetHeader className="px-6 py-4 border-b">
+                    <SheetTitle className="text-left">Menu</SheetTitle>
+                  </SheetHeader>
 
-                <div className="flex-1 px-6 py-4">
-                  {/* Mobile navigation items */}
-                  <div className="space-y-2">
-                    {navItems.map((item) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setIsOpen(false)}
-                          className={cn(
-                            "block px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                            isActive
-                              ? "bg-blue-100 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-
-                  {/* Mobile auth section */}
-                  <ClientOnly fallback={<div className="mt-6 pt-6 border-t border-gray-200 h-16" />}>
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      {user ? (
-                        <AvatarMenu isMobile onClose={() => setIsOpen(false)} />
-                      ) : (
-                        <Button asChild variant="default" className="w-full h-12 text-base">
-                          <Link href="/login" onClick={() => setIsOpen(false)}>
-                            Đăng nhập
+                  <div className="flex-1 px-6 py-4">
+                    {/* Mobile navigation items */}
+                    <div className="space-y-2">
+                      {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                              "block px-4 py-3 rounded-lg text-base font-medium transition-colors",
+                              isActive
+                                ? "bg-blue-100 text-blue-700"
+                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                            )}
+                          >
+                            {item.label}
                           </Link>
-                        </Button>
-                      )}
+                        );
+                      })}
                     </div>
-                  </ClientOnly>
+
+                    {/* Mobile auth section */}
+                    <ClientOnly
+                      fallback={
+                        <div className="mt-6 pt-6 border-t border-gray-200 h-16" />
+                      }
+                    >
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        {user ? (
+                          <AvatarMenu
+                            isMobile
+                            onClose={() => setIsOpen(false)}
+                          />
+                        ) : (
+                          <Button
+                            asChild
+                            variant="default"
+                            className="w-full h-12 text-base"
+                          >
+                            <Link
+                              href="/login"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              Đăng nhập
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </ClientOnly>
+                  </div>
                 </div>
-              </div>
-            </SheetContent>
+              </SheetContent>
             </Sheet>
           </div>
         </div>

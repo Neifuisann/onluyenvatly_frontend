@@ -1,10 +1,10 @@
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { authApi, LoginCredentials, RegisterData } from '@/lib/api/auth';
-import { useAuthStore } from '@/lib/stores/auth';
-import { EncryptionService } from '@/lib/crypto/encryption';
-import { clearCsrfToken } from '@/lib/api/client';
-import { extractErrorMessage } from '@/lib/utils/errorHandler';
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { authApi, LoginCredentials, RegisterData } from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/stores/auth";
+import { EncryptionService } from "@/lib/crypto/encryption";
+import { clearCsrfToken } from "@/lib/api/client";
+import { extractErrorMessage } from "@/lib/utils/errorHandler";
 
 export function useAuth() {
   const { user, isLoading, error } = useAuthStore();
@@ -16,16 +16,20 @@ export function useAdminLogin() {
   const { setUser, setError } = useAuthStore();
 
   return useMutation({
-    mutationFn: (credentials: LoginCredentials) => authApi.adminLogin(credentials),
+    mutationFn: (credentials: LoginCredentials) =>
+      authApi.adminLogin(credentials),
     onSuccess: async (data) => {
       setUser(data.user);
       // Initialize encryption after successful login (optional)
       try {
         await EncryptionService.initializeEncryption();
       } catch (error) {
-        console.warn('Encryption initialization failed, continuing without encryption:', error);
+        console.warn(
+          "Encryption initialization failed, continuing without encryption:",
+          error,
+        );
       }
-      router.push('/admin');
+      router.push("/admin");
     },
     onError: (error) => {
       const message = extractErrorMessage(error);
@@ -39,16 +43,20 @@ export function useStudentLogin() {
   const { setUser, setError } = useAuthStore();
 
   return useMutation({
-    mutationFn: (credentials: LoginCredentials) => authApi.studentLogin(credentials),
+    mutationFn: (credentials: LoginCredentials) =>
+      authApi.studentLogin(credentials),
     onSuccess: async (data) => {
       setUser(data.user);
       // Initialize encryption after successful login
       try {
         await EncryptionService.initializeEncryption();
       } catch (error) {
-        console.warn('Encryption initialization failed, continuing without encryption:', error);
+        console.warn(
+          "Encryption initialization failed, continuing without encryption:",
+          error,
+        );
       }
-      router.push('/lessons');
+      router.push("/lessons");
     },
     onError: (error) => {
       const message = extractErrorMessage(error);
@@ -65,7 +73,7 @@ export function useStudentRegister() {
     mutationFn: (data: RegisterData) => authApi.studentRegister(data),
     onSuccess: (data) => {
       setUser(data.user);
-      router.push('/lessons');
+      router.push("/lessons");
     },
     onError: (error) => {
       const message = extractErrorMessage(error);
@@ -83,13 +91,13 @@ export function useLogout() {
     onSuccess: async () => {
       await logout(true);
       clearCsrfToken();
-      router.push('/');
+      router.push("/");
     },
     onError: async (error) => {
       // Even if logout fails on server, clear local state
       await logout(true);
       clearCsrfToken();
-      router.push('/');
+      router.push("/");
     },
   });
 }

@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient from "./client";
 
 export interface LoginCredentials {
   username?: string;
@@ -27,59 +27,62 @@ export interface User {
   full_name?: string;
   phone_number?: string;
   email?: string;
-  role: 'admin' | 'student';
+  role: "admin" | "student";
   isLoggedIn: boolean;
 }
 
 export const authApi = {
   // Admin login
   adminLogin: async (credentials: LoginCredentials) => {
-    const response = await apiClient.post('/auth/admin/login', credentials);
+    const response = await apiClient.post("/auth/admin/login", credentials);
     return response.data;
   },
 
   // Student login
   studentLogin: async (credentials: LoginCredentials) => {
-    const response = await apiClient.post('/auth/login', credentials);
+    const response = await apiClient.post("/auth/login", credentials);
     return response.data;
   },
 
   // Student register
   studentRegister: async (data: RegisterData) => {
-    const response = await apiClient.post('/auth/student/register', data);
+    const response = await apiClient.post("/auth/student/register", data);
     return response.data;
   },
 
   // Check auth status
   checkAuth: async (): Promise<User> => {
-    const response = await apiClient.get('/auth/check');
+    const response = await apiClient.get("/auth/check");
     const data = response.data.data;
-    
+
     if (!data.authenticated) {
-      throw new Error('Not authenticated');
+      throw new Error("Not authenticated");
     }
-    
+
     // Transform backend response to frontend User type
     return {
-      id: data.user.id || (data.user.type === 'admin' ? 1 : 0),
+      id: data.user.id || (data.user.type === "admin" ? 1 : 0),
       username: data.user.name || data.user.type,
       full_name: data.user.name,
       phone_number: data.user.phone_number,
       email: data.user.email,
-      role: data.user.type as 'admin' | 'student',
-      isLoggedIn: true
+      role: data.user.type as "admin" | "student",
+      isLoggedIn: true,
     };
   },
 
   // Logout
   logout: async () => {
-    const response = await apiClient.post('/auth/logout');
+    const response = await apiClient.post("/auth/logout");
     return response.data;
   },
 
   // Change password
-  changePassword: async (data: { currentPassword: string; newPassword: string }) => {
-    const response = await apiClient.post('/auth/change-password', data);
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    const response = await apiClient.post("/auth/change-password", data);
     return response.data;
   },
 };

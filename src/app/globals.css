@@ -66,5 +66,104 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+  }
+}
+
+/* Result Page Styles */
+@layer components {
+  .mobile-optimized {
+    @apply w-full;
+  }
+
+  .mobile-optimized .question-card {
+    @apply w-full flex flex-col gap-4;
+  }
+
+  /* Question card states */
+  .question-card.correct {
+    @apply border-green-200 bg-green-50/30;
+  }
+
+  .question-card.incorrect {
+    @apply border-red-200 bg-red-50/30;
+  }
+
+  /* Answer choice styling */
+  .correct-answer {
+    @apply bg-green-100 border-green-300 text-green-800;
+  }
+
+  .user-selected {
+    @apply font-semibold border-2;
+  }
+
+  .user-selected.incorrect {
+    @apply bg-red-100 border-red-300 text-red-800;
+  }
+
+  /* Touch-friendly buttons on mobile */
+  @media (max-width: 768px) {
+    .mobile-optimized button {
+      @apply min-h-[44px] min-w-[44px] touch-manipulation;
+    }
+
+    .mobile-optimized .question-card {
+      @apply mb-4;
+    }
+  }
+}
+
+/* LaTeX/KaTeX rendering styles */
+@layer utilities {
+  .katex {
+    font-size: 1.1em;
+  }
+
+  .katex-display {
+    margin: 1em 0;
+  }
+
+  /* Prose styling for AI explanations */
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    @apply text-foreground font-semibold mt-6 mb-4;
+  }
+
+  .prose h2 {
+    @apply text-lg;
+  }
+
+  .prose h3 {
+    @apply text-base;
+  }
+
+  .prose p {
+    @apply mb-4 text-muted-foreground;
+  }
+
+  .prose strong {
+    @apply font-semibold text-foreground;
+  }
+
+  .prose ul,
+  .prose ol {
+    @apply my-4 ml-6;
+  }
+
+  .prose li {
+    @apply mb-2;
+  }
+
+  .prose code {
+    @apply bg-muted px-1 py-0.5 rounded text-sm font-mono;
+  }
+
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto;
   }
 }
