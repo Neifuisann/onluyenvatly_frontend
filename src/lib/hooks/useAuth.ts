@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authApi, LoginCredentials, RegisterData } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/stores/auth";
-import { EncryptionService } from "@/lib/crypto/encryption";
 import { clearCsrfToken } from "@/lib/api/client";
 import { extractErrorMessage } from "@/lib/utils/errorHandler";
 
@@ -45,17 +44,8 @@ export function useStudentLogin() {
   return useMutation({
     mutationFn: (credentials: LoginCredentials) =>
       authApi.studentLogin(credentials),
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       setUser(data.user);
-      // Initialize encryption after successful login
-      try {
-        await EncryptionService.initializeEncryption();
-      } catch (error) {
-        console.warn(
-          "Encryption initialization failed, continuing without encryption:",
-          error,
-        );
-      }
       router.push("/lessons");
     },
     onError: (error) => {

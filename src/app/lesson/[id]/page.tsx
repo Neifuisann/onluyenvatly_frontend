@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   AlertCircle,
   Clock,
@@ -492,16 +493,9 @@ export default function LessonPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <Skeleton className="h-12 w-3/4 mb-8" />
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-8 w-full mb-4" />
-              <Skeleton className="h-4 w-2/3" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full" />
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <LoadingSpinner size="lg" text="Đang tải bài học..." />
+          </div>
         </div>
       </div>
     );

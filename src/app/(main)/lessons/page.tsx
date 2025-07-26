@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +74,7 @@ export default function LessonsPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [confirmingLesson, setConfirmingLesson] = useState(false);
   const [searchDebounceTimer, setSearchDebounceTimer] =
     useState<NodeJS.Timeout | null>(null);
   const [allTags, setAllTags] = useState<Map<string, number>>(new Map());
@@ -238,6 +240,7 @@ export default function LessonsPage() {
   // Handle confirm button in popup
   const handleConfirmLesson = () => {
     if (selectedLesson) {
+      setConfirmingLesson(true);
       router.push(`/lesson/${selectedLesson.id}`);
     }
   };
@@ -380,7 +383,12 @@ export default function LessonsPage() {
         {/* Lesson Confirmation Dialog */}
         <Dialog
           open={!!selectedLesson}
-          onOpenChange={(open) => !open && setSelectedLesson(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedLesson(null);
+              setConfirmingLesson(false);
+            }
+          }}
         >
           <DialogContent className="max-w-2xl" data-testid="lesson-dialog">
             <DialogHeader>
@@ -438,10 +446,17 @@ export default function LessonsPage() {
               </Button>
               <Button
                 onClick={handleConfirmLesson}
+                disabled={confirmingLesson}
                 data-testid="confirm-button"
               >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Bắt đầu học
+                {confirmingLesson ? (
+                  <>Đang tải...</>
+                ) : (
+                  <>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Bắt đầu học
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -520,21 +535,8 @@ export default function LessonsPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: LESSONS_PER_PAGE }).map((_, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden"
-                data-testid="loading-skeleton"
-              >
-                <Skeleton className="h-48 w-full" />
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardHeader>
-              </Card>
-            ))}
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <LoadingSpinner size="lg" text="Đang tải danh sách bài học..." />
           </div>
         )}
 
