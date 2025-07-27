@@ -35,22 +35,27 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 const renderMarkdownWithLatex = (content: string): React.ReactNode => {
   if (!content) return null;
 
-  // First, add spaces around inline math formulas
-  const contentWithSpaces = content.replace(/(\S)(\$[^$]+\$)/g, "$1 $2");
-
-  // Split content by LaTeX patterns
-  const parts = contentWithSpaces.split(/(\$\$.*?\$\$|\$.*?\$)/g);
+  // Split content by LaTeX patterns first
+  const parts = content.split(/(\$\$.*?\$\$|\$.*?\$)/g);
 
   return parts.map((part, index) => {
     // Display math
     if (part.startsWith("$$") && part.endsWith("$$")) {
       const formula = part.slice(2, -2);
-      return <BlockMath key={index} math={formula} />;
+      return (
+        <span key={index} className="inline-block mx-1">
+          <BlockMath math={formula} />
+        </span>
+      );
     }
     // Inline math
     else if (part.startsWith("$") && part.endsWith("$")) {
       const formula = part.slice(1, -1);
-      return <InlineMath key={index} math={formula} />;
+      return (
+        <span key={index} className="inline-block mx-1">
+          <InlineMath math={formula} />
+        </span>
+      );
     }
     // Regular text/markdown
     else {
@@ -323,6 +328,12 @@ export default function ResultsPage() {
     let className =
       "relative flex items-start px-3 py-2 rounded-md border text-sm transition-all bg-white border-gray-200";
 
+    // Extract image from choice text if present
+    const imageMatch = choice.match(/\[img\s+src="([^"]+)"\]/);
+    const textWithoutImage = imageMatch 
+      ? choice.replace(imageMatch[0], "").trim()
+      : choice;
+
     return (
       <div
         key={choiceLabel}
@@ -331,7 +342,22 @@ export default function ResultsPage() {
       >
         <span className="font-medium mr-3 flex-shrink-0">{choiceLabel}</span>
         <div className="flex-1 whitespace-normal break-words">
-          {renderMarkdownWithLatex(choice)}
+          <div>
+            {renderMarkdownWithLatex(textWithoutImage)}
+          </div>
+          {imageMatch && imageMatch[1] && (
+            <div className="mt-2">
+              <img
+                src={imageMatch[1]}
+                alt="Choice image"
+                className="max-w-full h-auto rounded-lg"
+                onError={(e) => {
+                  console.error("Failed to load choice image:", imageMatch[1]);
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -451,12 +477,12 @@ export default function ResultsPage() {
       <div className="space-y-2">
         <div className="p-3 rounded border bg-gray-50">
           <span data-testid="user-answer">
-            {hasAnswer ? userAnswer : "Chưa chọn đáp án"}
+            {hasAnswer ? renderMarkdownWithLatex(String(userAnswer)) : "Chưa chọn đáp án"}
           </span>
         </div>
         <div className="p-3 rounded border bg-green-100 border-green-300">
           <span data-testid="correct-answer">
-            {resultQuestion.lessonQuestion?.correctAnswer}
+            {renderMarkdownWithLatex(String(resultQuestion.lessonQuestion?.correctAnswer || ""))}
           </span>
         </div>
       </div>
@@ -849,13 +875,13 @@ export default function ResultsPage() {
                                 Câu trả lời của bạn:{" "}
                               </span>
                               <span data-testid="user-answer">
-                                {resultQuestion.answer || "Không trả lời"}
+                                {renderMarkdownWithLatex(String(resultQuestion.answer || "Không trả lời"))}
                               </span>
                             </div>
                             <div className="p-2 rounded border bg-green-100 border-green-300 text-sm">
                               <span className="font-medium">Đáp án đúng: </span>
                               <span data-testid="correct-answer">
-                                {lessonQuestion.correctAnswer}
+                                {renderMarkdownWithLatex(String(lessonQuestion.correctAnswer))}
                               </span>
                             </div>
                           </div>
@@ -909,14 +935,14 @@ export default function ResultsPage() {
                               <div className="flex items-center gap-2">
                                 <span className="text-red-600">Đã chọn:</span>
                                 <span className="font-semibold text-red-600 px-2 py-1 bg-red-50 rounded border border-red-200">
-                                  {resultQuestion.answer}
+                                  {renderMarkdownWithLatex(String(resultQuestion.answer))}
                                 </span>
                               </div>
                             )}
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600">Đáp án đúng:</span>
                             <span className="font-semibold text-green-600 px-2 py-1 bg-green-50 rounded border border-green-200">
-                              {lessonQuestion.correctAnswer}
+                              {renderMarkdownWithLatex(String(lessonQuestion.correctAnswer))}
                             </span>
                           </div>
                         </div>

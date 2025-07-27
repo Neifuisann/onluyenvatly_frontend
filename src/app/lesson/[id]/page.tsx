@@ -833,7 +833,32 @@ export default function LessonPage() {
                                     className="flex-1"
                                     style={{ fontSize: "inherit" }}
                                   >
-                                    {renderLatex(choice)}
+                                    {(() => {
+                                      // Extract image from choice text if present
+                                      const imageMatch = choice.match(/\[img\s+src="([^"]+)"\]/);
+                                      const textWithoutImage = imageMatch 
+                                        ? choice.replace(imageMatch[0], "").trim()
+                                        : choice;
+                                      
+                                      return (
+                                        <>
+                                          <div>{renderLatex(textWithoutImage)}</div>
+                                          {imageMatch && imageMatch[1] && (
+                                            <div className="mt-2">
+                                              <img
+                                                src={imageMatch[1]}
+                                                alt="Choice image"
+                                                className="max-w-full h-auto rounded-lg"
+                                                onError={(e) => {
+                                                  console.error("Failed to load choice image:", imageMatch[1]);
+                                                  e.currentTarget.style.display = "none";
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 </CardContent>
                               </Card>
@@ -1080,7 +1105,32 @@ export default function LessonPage() {
                                 )}
                               </div>
                               <div className="flex-1 text-sm sm:text-base">
-                                {renderLatex(choice)}
+                                {(() => {
+                                  // Extract image from choice text if present
+                                  const imageMatch = choice.match(/\[img\s+src="([^"]+)"\]/);
+                                  const textWithoutImage = imageMatch 
+                                    ? choice.replace(imageMatch[0], "").trim()
+                                    : choice;
+                                  
+                                  return (
+                                    <>
+                                      <div>{renderLatex(textWithoutImage)}</div>
+                                      {imageMatch && imageMatch[1] && (
+                                        <div className="mt-2">
+                                          <img
+                                            src={imageMatch[1]}
+                                            alt="Choice image"
+                                            className="max-w-full h-auto rounded-lg"
+                                            onError={(e) => {
+                                              console.error("Failed to load choice image:", imageMatch[1]);
+                                              e.currentTarget.style.display = "none";
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </CardContent>
                           </Card>
