@@ -241,6 +241,8 @@ export default function LessonsPage() {
   const handleConfirmLesson = () => {
     if (selectedLesson) {
       setConfirmingLesson(true);
+      // Mark this navigation as valid before routing
+      sessionStorage.setItem("valid-lesson-navigation", "true");
       router.push(`/lesson/${selectedLesson.id}`);
     }
   };

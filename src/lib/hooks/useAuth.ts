@@ -4,6 +4,7 @@ import { authApi, LoginCredentials, RegisterData } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/stores/auth";
 import { clearCsrfToken } from "@/lib/api/client";
 import { extractErrorMessage } from "@/lib/utils/errorHandler";
+import { EncryptionService } from "@/lib/services/encryption";
 
 export function useAuth() {
   const { user, isLoading, error } = useAuthStore();

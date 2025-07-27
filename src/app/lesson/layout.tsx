@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LessonRouteGuard } from "@/components/features/lessons/LessonRouteGuard";
 
 export const metadata: Metadata = {
   title: "Bài Học - Ôn Luyện Vật Lý",
@@ -16,5 +17,5 @@ export default function LessonLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <LessonRouteGuard>{children}</LessonRouteGuard>;
 }

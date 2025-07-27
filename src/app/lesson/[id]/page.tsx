@@ -372,7 +372,11 @@ export default function LessonPage() {
         // Block math
         const math = part.slice(2, -2);
         return (
-          <div key={index} data-testid="latex-block" className="my-4">
+          <div
+            key={`block-${index}`}
+            data-testid="latex-block"
+            className="my-4"
+          >
             <BlockMath>{math}</BlockMath>
           </div>
         );
@@ -380,13 +384,13 @@ export default function LessonPage() {
         // Inline math
         const math = part.slice(1, -1);
         return (
-          <InlineMath key={index} data-testid="latex-inline">
+          <InlineMath key={`inline-${index}`} data-testid="latex-inline">
             {math}
           </InlineMath>
         );
       } else {
         // Regular text
-        return <span key={index}>{part}</span>;
+        return <span key={`text-${index}`}>{part}</span>;
       }
     });
   };
@@ -835,14 +839,20 @@ export default function LessonPage() {
                                   >
                                     {(() => {
                                       // Extract image from choice text if present
-                                      const imageMatch = choice.match(/\[img\s+src="([^"]+)"\]/);
-                                      const textWithoutImage = imageMatch 
-                                        ? choice.replace(imageMatch[0], "").trim()
+                                      const imageMatch = choice.match(
+                                        /\[img\s+src="([^"]+)"\]/,
+                                      );
+                                      const textWithoutImage = imageMatch
+                                        ? choice
+                                            .replace(imageMatch[0], "")
+                                            .trim()
                                         : choice;
-                                      
+
                                       return (
                                         <>
-                                          <div>{renderLatex(textWithoutImage)}</div>
+                                          <div>
+                                            {renderLatex(textWithoutImage)}
+                                          </div>
                                           {imageMatch && imageMatch[1] && (
                                             <div className="mt-2">
                                               <img
@@ -850,8 +860,12 @@ export default function LessonPage() {
                                                 alt="Choice image"
                                                 className="max-w-full h-auto rounded-lg"
                                                 onError={(e) => {
-                                                  console.error("Failed to load choice image:", imageMatch[1]);
-                                                  e.currentTarget.style.display = "none";
+                                                  console.error(
+                                                    "Failed to load choice image:",
+                                                    imageMatch[1],
+                                                  );
+                                                  e.currentTarget.style.display =
+                                                    "none";
                                                 }}
                                               />
                                             </div>
@@ -1107,11 +1121,13 @@ export default function LessonPage() {
                               <div className="flex-1 text-sm sm:text-base">
                                 {(() => {
                                   // Extract image from choice text if present
-                                  const imageMatch = choice.match(/\[img\s+src="([^"]+)"\]/);
-                                  const textWithoutImage = imageMatch 
+                                  const imageMatch = choice.match(
+                                    /\[img\s+src="([^"]+)"\]/,
+                                  );
+                                  const textWithoutImage = imageMatch
                                     ? choice.replace(imageMatch[0], "").trim()
                                     : choice;
-                                  
+
                                   return (
                                     <>
                                       <div>{renderLatex(textWithoutImage)}</div>
@@ -1122,8 +1138,12 @@ export default function LessonPage() {
                                             alt="Choice image"
                                             className="max-w-full h-auto rounded-lg"
                                             onError={(e) => {
-                                              console.error("Failed to load choice image:", imageMatch[1]);
-                                              e.currentTarget.style.display = "none";
+                                              console.error(
+                                                "Failed to load choice image:",
+                                                imageMatch[1],
+                                              );
+                                              e.currentTarget.style.display =
+                                                "none";
                                             }}
                                           />
                                         </div>
