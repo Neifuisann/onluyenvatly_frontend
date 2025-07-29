@@ -48,10 +48,7 @@ export function FeaturedLessons({ lessons }: FeaturedLessonsProps) {
             onClick={() => router.push(`/teacher/lessons/${lesson.id}/edit`)}
             className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm p-4 transition-all hover:shadow-lg hover:scale-[1.02] dark:border-gray-800 dark:bg-gray-900/80"
           >
-            <div
-              className="mb-3 h-1 w-full rounded-full"
-              style={{ backgroundColor: lesson.color || "#a4aeff" }}
-            />
+            <div className="mb-3 h-1 w-full rounded-full bg-blue-400" />
             
             <h3 className="mb-2 font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
               {lesson.title}

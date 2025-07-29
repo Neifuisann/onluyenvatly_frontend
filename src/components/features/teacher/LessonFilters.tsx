@@ -2,10 +2,19 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Search, Filter, Tags, BookOpen } from "lucide-react";
 import { TagData } from "@/lib/api/teacher";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+interface AvailableTag {
+  name: string;
+  count: number;
+  visible: boolean;
+  order: number;
+}
 
 interface LessonFiltersProps {
   tags: TagData[];
+  availableTags: AvailableTag[];
   currentSearch: string;
   currentSort: string;
   currentTags: string[];
@@ -33,6 +42,7 @@ const formatTagName = (tag: string): string => {
 
 export function LessonFilters({
   tags,
+  availableTags,
   currentSearch,
   currentSort,
   currentTags,
@@ -52,15 +62,11 @@ export function LessonFilters({
   }, [searchInput, onSearchChange]);
 
   const handleTagClick = (tag: string) => {
-    if (tag === "all") {
-      onTagChange([]);
-    } else {
-      if (currentTags.includes(tag)) {
-        onTagChange(currentTags.filter((t) => t !== tag));
-      } else {
-        onTagChange([tag]);
-      }
-    }
+    const newTags = currentTags.includes(tag)
+      ? currentTags.filter((t) => t !== tag)
+      : [...currentTags, tag];
+
+    onTagChange(newTags);
   };
 
   return (
@@ -116,57 +122,67 @@ export function LessonFilters({
         </div>
       </motion.div>
 
-      {/* Tags Section */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2 }}
-        className="rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/80"
-      >
-        <div className="mb-4 flex items-center gap-2">
-          <Tags className="h-5 w-5 text-gray-500" />
-          <h3 className="font-semibold">Tags phổ biến</h3>
-        </div>
-        <div className="space-y-2">
-          <button
-            onClick={() => handleTagClick("all")}
-            className={cn(
-              "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
-              currentTags.length === 0
-                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
-            )}
-          >
-            <span>Tất cả</span>
-          </button>
-          {tags.map((tagData) => {
-            const tagName = typeof tagData === "string" ? tagData : tagData.tag;
-            const lessonCount = typeof tagData === "object" ? tagData.lessonCount : 0;
-            const isActive = currentTags.includes(tagName);
-
-            return (
-              <button
-                key={tagName}
-                onClick={() => handleTagClick(tagName)}
-                title={`${lessonCount} bài học`}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                )}
-              >
-                <span>{formatTagName(tagName)}</span>
-                {lessonCount > 0 && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {lessonCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </motion.div>
+      {/* Tag Filter */}
+      {availableTags.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/80"
+        >
+          <div className="mb-4 flex items-center gap-2">
+            <Tags className="h-5 w-5 text-gray-500" />
+            <h3 className="font-semibold">Lọc theo chủ đề:</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableTags
+              .sort((a, b) => {
+                // Keep selected tags in their original position
+                if (
+                  currentTags.includes(a.name) &&
+                  currentTags.includes(b.name)
+                ) {
+                  return a.order - b.order;
+                }
+                // If not selected, sort by popularity (count) then by original order
+                if (
+                  !currentTags.includes(a.name) &&
+                  !currentTags.includes(b.name)
+                ) {
+                  if (b.count !== a.count) {
+                    return b.count - a.count;
+                  }
+                  return a.order - b.order;
+                }
+                // Selected tags maintain their position relative to each other
+                return a.order - b.order;
+              })
+              .map(
+                ({ name, count, visible }) =>
+                  visible && (
+                    <Badge
+                      key={name}
+                      variant={
+                        currentTags.includes(name) ? "default" : "outline"
+                      }
+                      className={cn(
+                        "cursor-pointer transition-all",
+                        currentTags.includes(name) &&
+                          "bg-blue-600 hover:bg-blue-700",
+                      )}
+                      onClick={() => handleTagClick(name)}
+                      data-testid={`tag-${name}`}
+                      data-selected={
+                        currentTags.includes(name) ? "true" : undefined
+                      }
+                    >
+                      {name} ({count})
+                    </Badge>
+                  ),
+              )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Quick Actions */}
       {onCreateReview && (
