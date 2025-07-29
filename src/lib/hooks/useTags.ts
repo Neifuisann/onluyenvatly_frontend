@@ -100,5 +100,7 @@ export function formatTagName(tag: string): string {
     "nhiet-hoc": "Nhiệt học",
   };
 
-  return tagMap[tag] || tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ");
+  return (
+    tagMap[tag] || tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ")
+  );
 }

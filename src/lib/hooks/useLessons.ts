@@ -46,7 +46,14 @@ interface DashboardStats {
  * Hook to fetch lessons with filters
  */
 export function useLessons(filters: LessonFilters = {}) {
-  const { page = 1, limit = 10, search, sort = "newest", tags = [], includeStats = true } = filters;
+  const {
+    page = 1,
+    limit = 10,
+    search,
+    sort = "newest",
+    tags = [],
+    includeStats = true,
+  } = filters;
 
   return useQuery<LessonsResponse>({
     queryKey: ["lessons", { page, limit, search, sort, tags, includeStats }],
@@ -105,7 +112,10 @@ export function useCreateLesson() {
       toast.success("Đã tạo bài học mới thành công");
     },
     onError: (error: any) => {
-      toast.error("Không thể tạo bài học", error.response?.data?.message || error.message);
+      toast.error(
+        "Không thể tạo bài học",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 }
@@ -127,12 +137,13 @@ export function useUpdateLesson() {
       toast.success("Đã cập nhật bài học");
     },
     onError: (error: any) => {
-      toast.error("Không thể cập nhật bài học", error.response?.data?.message || error.message);
+      toast.error(
+        "Không thể cập nhật bài học",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 }
-
-
 
 /**
  * Hook to delete a lesson
@@ -152,7 +163,10 @@ export function useDeleteLesson() {
       toast.success("Đã xóa bài học thành công");
     },
     onError: (error: any) => {
-      toast.error("Không thể xóa bài học", error.response?.data?.message || error.message);
+      toast.error(
+        "Không thể xóa bài học",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 }
@@ -174,7 +188,10 @@ export function useReorderLessons() {
       toast.success("Đã cập nhật thứ tự bài học");
     },
     onError: (error: any) => {
-      toast.error("Không thể cập nhật thứ tự", error.response?.data?.message || error.message);
+      toast.error(
+        "Không thể cập nhật thứ tự",
+        error.response?.data?.message || error.message,
+      );
     },
   });
 }

@@ -13,7 +13,12 @@ interface SearchBarProps {
   className?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Tìm bài học hoặc tag...", className }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = "Tìm bài học hoặc tag...",
+  className,
+}: SearchBarProps) {
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
@@ -43,7 +48,7 @@ export function SearchBar({ value, onChange, placeholder = "Tìm bài học ho�
           "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm",
           "border-gray-200/50 dark:border-gray-700/50",
           "focus:bg-white dark:focus:bg-gray-800",
-          "transition-all duration-200"
+          "transition-all duration-200",
         )}
       />
     </motion.div>

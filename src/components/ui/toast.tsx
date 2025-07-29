@@ -22,20 +22,25 @@ const toastVariants = {
 };
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
-  ({ id, title, description, action, variant = "default", onClose, ...props }, ref) => {
+  (
+    { id, title, description, action, variant = "default", onClose, ...props },
+    ref,
+  ) => {
     return (
       <div
         ref={ref}
         className={cn(
           "pointer-events-auto relative flex w-full max-w-md gap-3 rounded-lg border p-4 shadow-lg backdrop-blur-sm transition-all",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
-          toastVariants[variant]
+          toastVariants[variant],
         )}
         {...props}
       >
         <div className="flex-1">
           {title && <div className="text-sm font-semibold">{title}</div>}
-          {description && <div className="text-sm opacity-90">{description}</div>}
+          {description && (
+            <div className="text-sm opacity-90">{description}</div>
+          )}
         </div>
         {action}
         {onClose && (
@@ -48,24 +53,26 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         )}
       </div>
     );
-  }
+  },
 );
 Toast.displayName = "Toast";
 
-export interface ToastViewportProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface ToastViewportProps
+  extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const ToastViewport = React.forwardRef<HTMLDivElement, ToastViewportProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "fixed bottom-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-md",
-        className
-      )}
-      {...props}
-    />
-  )
-);
+export const ToastViewport = React.forwardRef<
+  HTMLDivElement,
+  ToastViewportProps
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "fixed bottom-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-md",
+      className,
+    )}
+    {...props}
+  />
+));
 ToastViewport.displayName = "ToastViewport";
 
 export interface ToastProviderProps {
@@ -78,7 +85,9 @@ interface ToastContextValue {
   removeToast: (id: string) => void;
 }
 
-const ToastContext = React.createContext<ToastContextValue | undefined>(undefined);
+const ToastContext = React.createContext<ToastContextValue | undefined>(
+  undefined,
+);
 
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = React.useState<ToastProps[]>([]);
@@ -86,7 +95,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const addToast = React.useCallback((toast: Omit<ToastProps, "id">) => {
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { ...toast, id };
-    
+
     setToasts((prev) => [...prev, newToast]);
 
     // Auto remove after duration (default 5 seconds)

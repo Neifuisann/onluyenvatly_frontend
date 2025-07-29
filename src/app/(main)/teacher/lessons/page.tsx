@@ -29,12 +29,12 @@ export default function TeacherLessonsPage() {
     return page ? parseInt(page) : 1;
   });
 
-  const [currentSearch, setCurrentSearch] = useState(() => 
-    searchParams.get("search") || ""
+  const [currentSearch, setCurrentSearch] = useState(
+    () => searchParams.get("search") || "",
   );
 
-  const [currentSort, setCurrentSort] = useState(() => 
-    searchParams.get("sort") || "newest"
+  const [currentSort, setCurrentSort] = useState(
+    () => searchParams.get("sort") || "newest",
   );
 
   const [currentTags, setCurrentTags] = useState<string[]>(() => {
@@ -79,8 +79,6 @@ export default function TeacherLessonsPage() {
     router.replace(`/teacher/lessons${newUrl}`, { scroll: false });
   }, [currentPage, currentSearch, currentSort, currentTags, router]);
 
-
-
   // Fetch tags
   const { data: tags = [] } = useQuery<TagData[]>({
     queryKey: ["teacher-tags"],
@@ -91,19 +89,26 @@ export default function TeacherLessonsPage() {
   // Fetch featured lessons (4 newest)
   const { data: featuredLessonsData, isLoading: isLoadingFeatured } = useQuery({
     queryKey: ["teacher-featured-lessons"],
-    queryFn: () => teacherApi.getTeacherLessons({
-      page: 1,
-      limit: 4,
-      search: "",
-      sort: "newest",
-      tags: [],
-    }),
+    queryFn: () =>
+      teacherApi.getTeacherLessons({
+        page: 1,
+        limit: 4,
+        search: "",
+        sort: "newest",
+        tags: [],
+      }),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch lessons
   const { data: lessonsData, isLoading: isLoadingLessons } = useQuery({
-    queryKey: ["teacher-lessons", currentPage, currentSearch, currentSort, currentTags],
+    queryKey: [
+      "teacher-lessons",
+      currentPage,
+      currentSearch,
+      currentSort,
+      currentTags,
+    ],
     queryFn: async () => {
       const lessonsResponse = await teacherApi.getTeacherLessons({
         page: currentPage,
@@ -216,14 +221,6 @@ export default function TeacherLessonsPage() {
     router.push(`/teacher/lessons/${lesson.id}/edit`);
   };
 
-  const handleCreateReview = () => {
-    toast({ 
-      title: "Tính năng đang phát triển",
-      description: "Chức năng tạo bài ôn tập sẽ sớm được triển khai",
-      variant: "warning" 
-    });
-  };
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -232,15 +229,15 @@ export default function TeacherLessonsPage() {
   // Bulk selection handlers
   const handleSelectLesson = (lessonId: number, checked: boolean) => {
     if (checked) {
-      setSelectedLessons(prev => [...prev, lessonId]);
+      setSelectedLessons((prev) => [...prev, lessonId]);
     } else {
-      setSelectedLessons(prev => prev.filter(id => id !== lessonId));
+      setSelectedLessons((prev) => prev.filter((id) => id !== lessonId));
     }
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedLessons(lessons.map(lesson => lesson.id));
+      setSelectedLessons(lessons.map((lesson) => lesson.id));
     } else {
       setSelectedLessons([]);
     }
@@ -248,18 +245,20 @@ export default function TeacherLessonsPage() {
 
   const handleBulkDelete = () => {
     if (selectedLessons.length === 0) return;
-    
+
     const lessonTitles = lessons
-      .filter(lesson => selectedLessons.includes(lesson.id))
-      .map(lesson => lesson.title)
-      .join(', ');
-    
-    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedLessons.length} bài học?
+      .filter((lesson) => selectedLessons.includes(lesson.id))
+      .map((lesson) => lesson.title)
+      .join(", ");
+
+    if (
+      confirm(`Bạn có chắc chắn muốn xóa ${selectedLessons.length} bài học?
 
 ${lessonTitles}
 
-Hành động này không thể hoàn tác.`)) {
-      selectedLessons.forEach(id => deleteLessonMutation.mutate(id));
+Hành động này không thể hoàn tác.`)
+    ) {
+      selectedLessons.forEach((id) => deleteLessonMutation.mutate(id));
       setSelectedLessons([]);
     }
   };
@@ -356,7 +355,9 @@ Hành động này không thể hoàn tác.`)) {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>{formatDate(lesson.lastActivity || lesson.created_at)}</span>
+                      <span>
+                        {formatDate(lesson.lastActivity || lesson.created_at)}
+                      </span>
                     </div>
                   </div>
                 </motion.div>
@@ -383,7 +384,6 @@ Hành động này không thể hoàn tác.`)) {
             onSearchChange={setCurrentSearch}
             onSortChange={setCurrentSort}
             onTagChange={setCurrentTags}
-            onCreateReview={handleCreateReview}
           />
 
           {/* Lessons List */}
@@ -451,14 +451,27 @@ Hành động này không thể hoàn tác.`)) {
                 <div className="flex items-center border-b border-gray-200 p-4 dark:border-gray-800">
                   <div className="flex items-center mr-4">
                     <Checkbox
-                      checked={selectedLessons.length === lessons.length && lessons.length > 0}
-                      onCheckedChange={(checked: boolean) => handleSelectAll(checked)}
+                      checked={
+                        selectedLessons.length === lessons.length &&
+                        lessons.length > 0
+                      }
+                      onCheckedChange={(checked: boolean) =>
+                        handleSelectAll(checked)
+                      }
                     />
                   </div>
-                  <div className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tên bài học</div>
-                  <div className="w-24 text-sm font-medium text-gray-700 dark:text-gray-300">Học sinh</div>
-                  <div className="w-32 text-sm font-medium text-gray-700 dark:text-gray-300">Hoàn thành</div>
-                  <div className="w-32 text-sm font-medium text-gray-700 dark:text-gray-300">Cập nhật</div>
+                  <div className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tên bài học
+                  </div>
+                  <div className="w-24 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Học sinh
+                  </div>
+                  <div className="w-32 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Hoàn thành
+                  </div>
+                  <div className="w-32 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Cập nhật
+                  </div>
                 </div>
 
                 {/* Lessons List */}
@@ -472,13 +485,18 @@ Hành động này không thể hoàn tác.`)) {
                       className="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
                       onClick={() => handleEditLesson(lesson)}
                     >
-                      <div className="flex items-center mr-4" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="flex items-center mr-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Checkbox
                           checked={selectedLessons.includes(lesson.id)}
-                          onCheckedChange={(checked: boolean) => handleSelectLesson(lesson.id, checked)}
+                          onCheckedChange={(checked: boolean) =>
+                            handleSelectLesson(lesson.id, checked)
+                          }
                         />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
                           {lesson.title}
@@ -501,17 +519,17 @@ Hành động này không thể hoàn tác.`)) {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="w-24 text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <Users className="h-4 w-4 mr-1" />
                         {lesson.studentCount || 0}
                       </div>
-                      
+
                       <div className="w-32 text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <BarChart className="h-4 w-4 mr-1" />
                         {lesson.completionRate || "0%"}
                       </div>
-                      
+
                       <div className="w-32 text-sm text-gray-600 dark:text-gray-400 flex items-center">
                         <Clock className="h-4 w-4 mr-1" />
                         {formatDate(lesson.lastActivity || lesson.created_at)}

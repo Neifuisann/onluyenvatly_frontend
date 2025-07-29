@@ -21,9 +21,11 @@ export function LessonRouteGuard({ children }: LessonRouteGuardProps) {
       // Only check once to avoid re-checking on re-renders
       if (!hasChecked.current) {
         hasChecked.current = true;
-        
+
         // Check if navigation was marked as valid in session storage
-        const validNavigation = sessionStorage.getItem("valid-lesson-navigation");
+        const validNavigation = sessionStorage.getItem(
+          "valid-lesson-navigation",
+        );
 
         if (validNavigation === "true") {
           setIsAuthorized(true);
@@ -35,7 +37,7 @@ export function LessonRouteGuard({ children }: LessonRouteGuardProps) {
           // Check if we have a referrer from the lessons page
           const referrer = document.referrer;
           const lessonsPattern = /\/lessons(\?|$|#)/;
-          
+
           if (referrer && lessonsPattern.test(new URL(referrer).pathname)) {
             setIsAuthorized(true);
           } else {

@@ -41,12 +41,14 @@ export const teacherApi = {
   // Get dashboard statistics
   getDashboardStats: async (): Promise<DashboardStats> => {
     const response = await apiClient.get("/teacher/dashboard-stats");
-    return response.data.data || {
-      totalLessons: 0,
-      activeLessons: 0,
-      totalStudents: 0,
-      recentActivity: 0,
-    };
+    return (
+      response.data.data || {
+        totalLessons: 0,
+        activeLessons: 0,
+        totalStudents: 0,
+        recentActivity: 0,
+      }
+    );
   },
 
   // Get popular tags
@@ -57,7 +59,9 @@ export const teacherApi = {
         return response.data.tags;
       }
     } catch (error) {
-      console.error("Failed to fetch complete tags, falling back to popular tags");
+      console.error(
+        "Failed to fetch complete tags, falling back to popular tags",
+      );
     }
 
     // Fallback to popular tags
@@ -90,8 +94,6 @@ export const teacherApi = {
     return response.data;
   },
 
-
-
   // Delete lesson
   deleteLesson: async (id: number): Promise<any> => {
     const response = await apiClient.delete(`/teacher/lessons/${id}`);
@@ -121,7 +123,9 @@ export const teacherApi = {
 
   // Generate lesson image
   generateLessonImage: async (id: number): Promise<any> => {
-    const response = await apiClient.post(`/teacher/lessons/${id}/generate-image`);
+    const response = await apiClient.post(
+      `/teacher/lessons/${id}/generate-image`,
+    );
     return response.data;
   },
 };

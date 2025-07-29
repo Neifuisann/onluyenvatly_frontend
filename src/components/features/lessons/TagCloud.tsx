@@ -16,7 +16,13 @@ interface TagCloudProps {
   onClearTags: () => void;
 }
 
-export function TagCloud({ tags, selectedTags, onTagSelect, onTagRemove, onClearTags }: TagCloudProps) {
+export function TagCloud({
+  tags,
+  selectedTags,
+  onTagSelect,
+  onTagRemove,
+  onClearTags,
+}: TagCloudProps) {
   const toast = useToast();
   const [hoveredTag, setHoveredTag] = useState<string | null>(null);
 
@@ -36,9 +42,16 @@ export function TagCloud({ tags, selectedTags, onTagSelect, onTagRemove, onClear
     }
   };
 
-
-  const normalizedTags = tags.map((tag) => 
-    typeof tag === "string" ? { tag, lessonCount: 0, totalViews: 0, recentActivity: 0, popularityScore: 0 } : tag
+  const normalizedTags = tags.map((tag) =>
+    typeof tag === "string"
+      ? {
+          tag,
+          lessonCount: 0,
+          totalViews: 0,
+          recentActivity: 0,
+          popularityScore: 0,
+        }
+      : tag,
   );
 
   return (
@@ -57,7 +70,7 @@ export function TagCloud({ tags, selectedTags, onTagSelect, onTagRemove, onClear
             onClick={(e) => handleTagClick("all", e)}
             className={cn(
               "transition-all duration-200",
-              selectedTags.length === 0 && "bg-blue-600 hover:bg-blue-700"
+              selectedTags.length === 0 && "bg-blue-600 hover:bg-blue-700",
             )}
           >
             Tất cả
@@ -86,9 +99,13 @@ export function TagCloud({ tags, selectedTags, onTagSelect, onTagRemove, onClear
                 onClick={(e) => handleTagClick(tagData.tag, e)}
                 className={cn(
                   "transition-all duration-200 relative",
-                  isSelected && "bg-blue-600 hover:bg-blue-700"
+                  isSelected && "bg-blue-600 hover:bg-blue-700",
                 )}
-                title={hasCount ? `${tagData.lessonCount} bài học • ${tagData.totalViews} lượt xem` : undefined}
+                title={
+                  hasCount
+                    ? `${tagData.lessonCount} bài học • ${tagData.totalViews} lượt xem`
+                    : undefined
+                }
               >
                 <span>{formatTagName(tagData.tag)}</span>
                 {hasCount && (

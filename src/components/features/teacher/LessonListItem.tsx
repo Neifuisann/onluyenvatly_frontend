@@ -42,7 +42,8 @@ export function LessonListItem({
       transition={{ delay: index * 0.05 }}
       className={cn(
         "group relative flex items-center gap-4 rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-3 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-900/80",
-        selected && "border-blue-500 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20"
+        selected &&
+          "border-blue-500 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20",
       )}
     >
       {/* Checkbox */}
@@ -58,19 +59,14 @@ export function LessonListItem({
         />
       </div>
 
-
-
       {/* Main content - clickable area */}
-      <div
-        className="flex-1 cursor-pointer"
-        onClick={() => onClick(lesson)}
-      >
+      <div className="flex-1 cursor-pointer" onClick={() => onClick(lesson)}>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="font-medium text-gray-900 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
               {lesson.title}
             </h3>
-            
+
             {/* Tags */}
             {lesson.tags && lesson.tags.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
@@ -98,7 +94,9 @@ export function LessonListItem({
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{lesson.lastActivity ? formatDate(lesson.lastActivity) : "N/A"}</span>
+              <span>
+                {lesson.lastActivity ? formatDate(lesson.lastActivity) : "N/A"}
+              </span>
             </div>
           </div>
         </div>

@@ -240,13 +240,13 @@ export default function ResultsPage() {
           let lessonQ = result.lesson.questions.find(
             (lq: any) => lq.id === resultQ.questionId,
           );
-          
+
           // If no match by ID, try to match by index as fallback
           if (!lessonQ && result.lesson.questions[index]) {
             lessonQ = result.lesson.questions[index];
             console.log(`Using index-based matching for question ${index}`);
           }
-          
+
           if (lessonQ) {
             // Normalize the lesson question format
             const normalizedLessonQ = {
@@ -322,7 +322,7 @@ export default function ResultsPage() {
     }
 
     return filteredQuestions;
-  };;
+  };
 
   const renderChoice = (
     choice: string,
@@ -904,7 +904,9 @@ export default function ResultsPage() {
                                 </span>
                                 <span data-testid="correct-answer">
                                   {renderMarkdownWithLatex(
-                                    String(lessonQuestion.correctAnswer || "N/A"),
+                                    String(
+                                      lessonQuestion.correctAnswer || "N/A",
+                                    ),
                                   )}
                                 </span>
                               </div>

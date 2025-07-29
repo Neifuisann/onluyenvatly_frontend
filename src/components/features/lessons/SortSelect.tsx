@@ -47,7 +47,7 @@ export function SortSelect({ value, onChange, className }: SortSelectProps) {
             "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm",
             "border-gray-200/50 dark:border-gray-700/50",
             "focus:bg-white dark:focus:bg-gray-800",
-            "transition-all duration-200"
+            "transition-all duration-200",
           )}
         >
           <SelectValue placeholder="Chọn cách sắp xếp" />

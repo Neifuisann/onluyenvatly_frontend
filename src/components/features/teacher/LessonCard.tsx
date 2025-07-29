@@ -10,11 +10,14 @@ import {
   MoreVertical,
   Copy,
   ChartBar,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 import { TeacherLesson } from "@/lib/api/teacher";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface LessonCardProps {
   lesson: TeacherLesson;
@@ -39,7 +42,6 @@ export function LessonCard({
   onGenerateImage,
   view = "list",
 }: LessonCardProps) {
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -58,8 +60,6 @@ export function LessonCard({
 
   const cardContent = (
     <>
-
-
       {/* Lesson number */}
       <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
         {index + 1}
@@ -83,7 +83,9 @@ export function LessonCard({
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{lesson.lastActivity ? formatDate(lesson.lastActivity) : "N/A"}</span>
+            <span>
+              {lesson.lastActivity ? formatDate(lesson.lastActivity) : "N/A"}
+            </span>
           </div>
         </div>
 
@@ -103,8 +105,6 @@ export function LessonCard({
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-
-
           {/* Main actions */}
           <button
             onClick={() => onEdit(lesson)}

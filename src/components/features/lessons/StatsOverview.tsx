@@ -14,7 +14,13 @@ interface StatWidgetProps {
   onClick?: () => void;
 }
 
-function StatWidget({ title, value, icon: Icon, color, onClick }: StatWidgetProps) {
+function StatWidget({
+  title,
+  value,
+  icon: Icon,
+  color,
+  onClick,
+}: StatWidgetProps) {
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
@@ -48,14 +54,18 @@ function StatWidget({ title, value, icon: Icon, color, onClick }: StatWidgetProp
           "relative overflow-hidden p-6 cursor-pointer transition-all duration-300",
           "bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm",
           "hover:shadow-lg hover:bg-white/70 dark:hover:bg-gray-800/70",
-          "border border-gray-200/50 dark:border-gray-700/50"
+          "border border-gray-200/50 dark:border-gray-700/50",
         )}
         onClick={onClick}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className="text-3xl font-bold mt-2">{displayValue.toLocaleString("vi-VN")}</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {title}
+            </p>
+            <p className="text-3xl font-bold mt-2">
+              {displayValue.toLocaleString("vi-VN")}
+            </p>
           </div>
           <div className={cn("p-3 rounded-full", color)}>
             <Icon className="h-6 w-6 text-white" />
@@ -118,10 +128,7 @@ export function StatsOverview({ stats, onStatClick }: StatsOverviewProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <StatWidget
-            {...widget}
-            onClick={() => onStatClick?.(widget.key)}
-          />
+          <StatWidget {...widget} onClick={() => onStatClick?.(widget.key)} />
         </motion.div>
       ))}
     </div>

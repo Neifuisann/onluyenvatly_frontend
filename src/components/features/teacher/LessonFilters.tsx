@@ -37,7 +37,9 @@ const formatTagName = (tag: string): string => {
     "co-hoc": "Cơ học",
     "nhiet-hoc": "Nhiệt học",
   };
-  return tagMap[tag] || tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ");
+  return (
+    tagMap[tag] || tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ")
+  );
 };
 
 export function LessonFilters({
@@ -181,23 +183,6 @@ export function LessonFilters({
                   ),
               )}
           </div>
-        </motion.div>
-      )}
-
-      {/* Quick Actions */}
-      {onCreateReview && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <button
-            onClick={onCreateReview}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            <BookOpen className="h-5 w-5" />
-            Tạo bài ôn tập
-          </button>
         </motion.div>
       )}
     </aside>

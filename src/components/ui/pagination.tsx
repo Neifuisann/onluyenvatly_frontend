@@ -9,7 +9,12 @@ interface PaginationProps {
   className?: string;
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange, className }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className,
+}: PaginationProps) {
   const getPageNumbers = () => {
     const delta = 2;
     const range: (number | string)[] = [];
@@ -17,7 +22,11 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
     let l: number | undefined;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - delta && i <= currentPage + delta)
+      ) {
         range.push(i);
       }
     }
@@ -42,14 +51,16 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
   const pageNumbers = getPageNumbers();
 
   return (
-    <nav className={cn("flex items-center justify-center space-x-2", className)}>
+    <nav
+      className={cn("flex items-center justify-center space-x-2", className)}
+    >
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         className={cn(
           "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           "hover:bg-gray-100 dark:hover:bg-gray-800",
-          currentPage === 1 && "pointer-events-none opacity-50"
+          currentPage === 1 && "pointer-events-none opacity-50",
         )}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -78,7 +89,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
                 "h-9 w-9 rounded-md text-sm font-medium transition-colors",
                 page === currentPage
                   ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800",
               )}
             >
               {page}
@@ -93,7 +104,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
         className={cn(
           "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           "hover:bg-gray-100 dark:hover:bg-gray-800",
-          currentPage === totalPages && "pointer-events-none opacity-50"
+          currentPage === totalPages && "pointer-events-none opacity-50",
         )}
       >
         Tiếp
@@ -124,14 +135,16 @@ export function SimplePagination({
         className={cn(
           "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           "hover:bg-gray-100 dark:hover:bg-gray-800",
-          currentPage === 1 && "pointer-events-none opacity-50"
+          currentPage === 1 && "pointer-events-none opacity-50",
         )}
       >
         <ChevronLeft className="h-4 w-4" />
         Trang trước
       </button>
 
-      <span className="text-sm text-gray-600 dark:text-gray-400">Trang {currentPage}</span>
+      <span className="text-sm text-gray-600 dark:text-gray-400">
+        Trang {currentPage}
+      </span>
 
       <button
         onClick={() => onPageChange(currentPage + 1)}
@@ -139,7 +152,7 @@ export function SimplePagination({
         className={cn(
           "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           "hover:bg-gray-100 dark:hover:bg-gray-800",
-          !hasNextPage && "pointer-events-none opacity-50"
+          !hasNextPage && "pointer-events-none opacity-50",
         )}
       >
         Trang tiếp

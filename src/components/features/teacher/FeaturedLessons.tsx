@@ -37,7 +37,7 @@ export function FeaturedLessons({ lessons }: FeaturedLessonsProps) {
           Bài học mới nhất
         </h2>
       </div>
-      
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {lessons.slice(0, 4).map((lesson, index) => (
           <motion.div
@@ -49,11 +49,11 @@ export function FeaturedLessons({ lessons }: FeaturedLessonsProps) {
             className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm p-4 transition-all hover:shadow-lg hover:scale-[1.02] dark:border-gray-800 dark:bg-gray-900/80"
           >
             <div className="mb-3 h-1 w-full rounded-full bg-blue-400" />
-            
+
             <h3 className="mb-2 font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
               {lesson.title}
             </h3>
-            
+
             <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
@@ -65,7 +65,9 @@ export function FeaturedLessons({ lessons }: FeaturedLessonsProps) {
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{lesson.created_at ? formatDate(lesson.created_at) : "N/A"}</span>
+                <span>
+                  {lesson.created_at ? formatDate(lesson.created_at) : "N/A"}
+                </span>
               </div>
             </div>
           </motion.div>

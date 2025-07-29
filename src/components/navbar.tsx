@@ -25,10 +25,22 @@ const navItems = [
   { href: "/leaderboard", label: "Bảng xếp hạng" },
 ];
 
+const teacherNavItems = [
+  { href: "/teacher/lessons", label: "Đề thi" },
+  { href: "/teacher/study-materials", label: "Bài học" },
+  { href: "/teacher/students-management", label: "Quản lý lớp" },
+];
+
 export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { user, checkAuth } = useAuthStore();
+
+  // Detect if we're in teacher mode based on URL path
+  const isTeacherMode = pathname.startsWith("/teacher/");
+
+  // Choose navigation items based on mode
+  const currentNavItems = isTeacherMode ? teacherNavItems : navItems;
 
   useEffect(() => {
     checkAuth();
@@ -59,7 +71,7 @@ export function Navbar() {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex flex-1 items-center justify-center space-x-1">
-            {navItems.map((item) => {
+            {currentNavItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <motion.div
@@ -141,7 +153,7 @@ export function Navbar() {
                   <div className="flex-1 px-6 py-4">
                     {/* Mobile navigation items */}
                     <div className="space-y-2">
-                      {navItems.map((item) => {
+                      {currentNavItems.map((item) => {
                         const isActive = pathname === item.href;
                         return (
                           <Link
