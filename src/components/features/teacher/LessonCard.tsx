@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { 
-  Users, 
-  BarChart, 
-  Clock, 
-  Edit, 
-  Trash2, 
-  Share2, 
+import {
+  Users,
+  BarChart,
+  Clock,
+  Edit,
+  Trash2,
+  Share2,
   MoreVertical,
-  Palette,
   Copy,
   ChartBar,
   Image as ImageIcon
@@ -22,7 +21,6 @@ interface LessonCardProps {
   index: number;
   onEdit: (lesson: TeacherLesson) => void;
   onDelete: (lesson: TeacherLesson) => void;
-  onColorChange: (id: number, color: string) => void;
   onShare: (lesson: TeacherLesson) => void;
   onViewStats: (lesson: TeacherLesson) => void;
   onDuplicate?: (lesson: TeacherLesson) => void;
@@ -35,20 +33,12 @@ export function LessonCard({
   index,
   onEdit,
   onDelete,
-  onColorChange,
   onShare,
   onViewStats,
   onDuplicate,
   onGenerateImage,
   view = "list",
 }: LessonCardProps) {
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [tempColor, setTempColor] = useState(lesson.color || "#a4aeff");
-
-  const handleColorChange = () => {
-    onColorChange(lesson.id, tempColor);
-    setShowColorPicker(false);
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -68,11 +58,7 @@ export function LessonCard({
 
   const cardContent = (
     <>
-      {/* Color bar */}
-      <div
-        className="absolute left-0 top-0 h-full w-1 rounded-l-lg"
-        style={{ backgroundColor: lesson.color || "#a4aeff" }}
-      />
+
 
       {/* Lesson number */}
       <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">

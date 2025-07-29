@@ -8,7 +8,6 @@ export interface TeacherLesson {
   description?: string;
   thumbnail?: string;
   tags: string[];
-  color?: string;
   studentCount?: number;
   completionRate?: string;
   lastActivity?: string;
@@ -91,11 +90,7 @@ export const teacherApi = {
     return response.data;
   },
 
-  // Update lesson color
-  updateLessonColor: async (id: number, color: string): Promise<any> => {
-    const response = await apiClient.put(`/teacher/lessons/${id}`, { color });
-    return response.data;
-  },
+
 
   // Delete lesson
   deleteLesson: async (id: number): Promise<any> => {

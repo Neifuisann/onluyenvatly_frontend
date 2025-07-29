@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Navbar } from "@/components/navbar";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="vi">
       <body className={inter.className} suppressHydrationWarning>
         <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <ToastProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>
