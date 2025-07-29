@@ -31,6 +31,15 @@ export function AvatarMenu({ isMobile = false, onClose }: AvatarMenuProps) {
 
   const menuItems = [
     {
+      icon: User,
+      label: "Vào màn hình giáo viên",
+      href: "/teacher/lessons",
+      onClick: () => {
+        setIsOpen(false);
+        if (onClose) onClose();
+      },
+    },
+    {
       icon: Settings,
       label: "Cài đặt",
       href: "/settings",
