@@ -103,40 +103,7 @@ export function LessonCard({
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* Color picker */}
-          <div className="relative">
-            <button
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-              title="Đổi màu"
-            >
-              <Palette className="h-4 w-4" />
-            </button>
-            {showColorPicker && (
-              <div className="absolute bottom-full left-0 z-10 mb-2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                <input
-                  type="color"
-                  value={tempColor}
-                  onChange={(e) => setTempColor(e.target.value)}
-                  className="mb-2 h-8 w-full cursor-pointer"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleColorChange}
-                    className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
-                  >
-                    Lưu
-                  </button>
-                  <button
-                    onClick={() => setShowColorPicker(false)}
-                    className="rounded bg-gray-200 px-3 py-1 text-xs hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+
 
           {/* Main actions */}
           <button

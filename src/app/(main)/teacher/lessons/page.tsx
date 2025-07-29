@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Plus, Trash2, Share2, Download } from "lucide-react";
+import { Plus, LayoutGrid, List } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/auth";
 import { Button } from "@/components/ui/button";
+import { StatsOverview } from "@/components/features/teacher/StatsOverview";
 import { LessonFilters } from "@/components/features/teacher/LessonFilters";
-import { FeaturedLessons } from "@/components/features/teacher/FeaturedLessons";
-import { LessonListItem } from "@/components/features/teacher/LessonListItem";
+import { LessonCard } from "@/components/features/teacher/LessonCard";
 import { Pagination } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/lib/hooks/useToast";
@@ -43,7 +43,7 @@ export default function TeacherLessonsPage() {
     return tags ? tags.split(",") : [];
   });
 
-  const [selectedLessons, setSelectedLessons] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Update URL when filters change
   useEffect(() => {
@@ -57,6 +57,17 @@ export default function TeacherLessonsPage() {
     router.replace(`/teacher/lessons${newUrl}`, { scroll: false });
   }, [currentPage, currentSearch, currentSort, currentTags, router]);
 
+  // Fetch dashboard stats
+  const { data: stats = {
+    totalLessons: 0,
+    activeLessons: 0,
+    totalStudents: 0,
+    recentActivity: 0,
+  } } = useQuery<DashboardStats>({
+    queryKey: ["teacher-dashboard-stats"],
+    queryFn: teacherApi.getDashboardStats,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   // Fetch tags
   const { data: tags = [] } = useQuery<TagData[]>({
@@ -82,11 +93,13 @@ export default function TeacherLessonsPage() {
   const totalPages = Math.ceil(totalLessons / LESSONS_PER_PAGE);
 
   // Mutations
+
   const deleteLessonMutation = useMutation({
     mutationFn: (id: number) => teacherApi.deleteLesson(id),
     onSuccess: () => {
       success("Đã xóa bài học thành công");
       queryClient.invalidateQueries({ queryKey: ["teacher-lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["teacher-dashboard-stats"] });
     },
     onError: () => {
       error("Không thể xóa bài học");
@@ -94,55 +107,50 @@ export default function TeacherLessonsPage() {
   });
 
   // Handlers
-  const handleLessonClick = (lesson: TeacherLesson) => {
+  const handleStatClick = (statType: string) => {
+    switch (statType) {
+      case "total":
+        setCurrentSearch("");
+        setCurrentTags([]);
+        setCurrentSort("newest");
+        break;
+      case "active":
+        setCurrentSort("popular");
+        break;
+      case "students":
+        router.push("/teacher/students");
+        break;
+      case "recent":
+        router.push("/teacher/activity");
+        break;
+    }
+  };
+
+  const handleEditLesson = (lesson: TeacherLesson) => {
     router.push(`/teacher/lessons/${lesson.id}/edit`);
   };
 
-  const handleSelectLesson = (id: number, checked: boolean) => {
-    setSelectedLessons(prev => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(id);
-      } else {
-        newSet.delete(id);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedLessons(new Set(lessons.map(l => l.id)));
-    } else {
-      setSelectedLessons(new Set());
+  const handleDeleteLesson = (lesson: TeacherLesson) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa bài học "${lesson.title}"?\n\nHành động này không thể hoàn tác.`)) {
+      deleteLessonMutation.mutate(lesson.id);
     }
   };
 
-  const handleBulkDelete = () => {
-    if (selectedLessons.size === 0) return;
-    
-    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedLessons.size} bài học?\n\nHành động này không thể hoàn tác.`)) {
-      // TODO: Implement bulk delete API
-      selectedLessons.forEach(id => {
-        deleteLessonMutation.mutate(id);
-      });
-      setSelectedLessons(new Set());
-    }
-  };
 
-  const handleBulkShare = async () => {
-    if (selectedLessons.size === 0) return;
-    
-    const shareUrls = Array.from(selectedLessons).map(id => 
-      `${window.location.origin}/share/lesson/${id}`
-    ).join('\n');
+
+  const handleShareLesson = async (lesson: TeacherLesson) => {
+    const shareUrl = `${window.location.origin}/share/lesson/${lesson.id}`;
     
     try {
-      await navigator.clipboard.writeText(shareUrls);
-      success(`Đã sao chép ${selectedLessons.size} link chia sẻ!`);
+      await navigator.clipboard.writeText(shareUrl);
+      success("Đã sao chép link chia sẻ!");
     } catch (err) {
       error("Không thể sao chép link");
     }
+  };
+
+  const handleViewStats = (lesson: TeacherLesson) => {
+    router.push(`/teacher/lessons/${lesson.id}/statistics`);
   };
 
   const handleCreateReview = () => {
@@ -168,17 +176,15 @@ export default function TeacherLessonsPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24" />
+            <Skeleton key={i} className="h-32" />
           ))}
         </div>
         <div className="flex gap-8">
           <div className="w-80">
             <Skeleton className="h-96" />
           </div>
-          <div className="flex-1 space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16" />
-            ))}
+          <div className="flex-1">
+            <Skeleton className="h-64" />
           </div>
         </div>
       </div>
@@ -202,8 +208,10 @@ export default function TeacherLessonsPage() {
           </p>
         </div>
 
-        {/* Featured Lessons */}
-        <FeaturedLessons lessons={lessons} />
+        {/* Stats Overview */}
+        <div className="mb-8">
+          <StatsOverview stats={stats} onStatClick={handleStatClick} />
+        </div>
 
         {/* Main Content */}
         <div className="flex gap-8">
@@ -222,16 +230,42 @@ export default function TeacherLessonsPage() {
           {/* Lessons List */}
           <div className="flex-1">
             {/* Content Header */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">
-                  Danh sách bài học
-                  {totalLessons > 0 && (
-                    <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                      ({totalLessons} bài)
-                    </span>
-                  )}
-                </h2>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                Danh sách bài học
+                {totalLessons > 0 && (
+                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    ({totalLessons} bài)
+                  </span>
+                )}
+              </h2>
+
+              <div className="flex items-center gap-2">
+                {/* View Mode Toggle */}
+                <div className="flex rounded-lg border border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 ${
+                      viewMode === "list"
+                        ? "bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                    title="Xem dạng danh sách"
+                  >
+                    <List className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 ${
+                      viewMode === "grid"
+                        ? "bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                    title="Xem dạng lưới"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                </div>
 
                 {/* Add Lesson Button */}
                 <Button
@@ -242,33 +276,6 @@ export default function TeacherLessonsPage() {
                   Thêm bài học mới
                 </Button>
               </div>
-
-              {/* Bulk Actions */}
-              {selectedLessons.size > 0 && (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <span className="text-sm font-medium">
-                    Đã chọn {selectedLessons.size} bài học
-                  </span>
-                  <div className="flex-1" />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleBulkShare}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Chia sẻ
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-600 hover:text-red-700"
-                    onClick={handleBulkDelete}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Xóa
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Lessons Container */}
@@ -290,34 +297,26 @@ export default function TeacherLessonsPage() {
                 )}
               </div>
             ) : (
-              <>
-                {/* Select All */}
-                <div className="mb-2 flex items-center gap-4 px-4 py-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedLessons.size === lessons.length && lessons.length > 0}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid gap-4 md:grid-cols-2"
+                    : "space-y-4"
+                }
+              >
+                {lessons.map((lesson: TeacherLesson, index: number) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    index={(currentPage - 1) * LESSONS_PER_PAGE + index}
+                    view={viewMode}
+                    onEdit={handleEditLesson}
+                    onDelete={handleDeleteLesson}
+                    onShare={handleShareLesson}
+                    onViewStats={handleViewStats}
                   />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Chọn tất cả
-                  </span>
-                </div>
-
-                {/* Lessons List */}
-                <div className="space-y-2">
-                  {lessons.map((lesson: TeacherLesson, index: number) => (
-                    <LessonListItem
-                      key={lesson.id}
-                      lesson={lesson}
-                      index={(currentPage - 1) * LESSONS_PER_PAGE + index}
-                      selected={selectedLessons.has(lesson.id)}
-                      onSelect={handleSelectLesson}
-                      onClick={handleLessonClick}
-                    />
-                  ))}
-                </div>
-              </>
+                ))}
+              </div>
             )}
 
             {/* Pagination */}

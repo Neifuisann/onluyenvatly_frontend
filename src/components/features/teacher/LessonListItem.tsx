@@ -58,11 +58,7 @@ export function LessonListItem({
         />
       </div>
 
-      {/* Color indicator */}
-      <div
-        className="h-8 w-1 rounded-full"
-        style={{ backgroundColor: lesson.color || "#a4aeff" }}
-      />
+
 
       {/* Main content - clickable area */}
       <div
