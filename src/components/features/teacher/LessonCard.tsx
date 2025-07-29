@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "motion/react";
 import {
   Users,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { TeacherLesson } from "@/lib/api/teacher";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+
 
 interface LessonCardProps {
   lesson: TeacherLesson;
