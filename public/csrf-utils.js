@@ -3,6 +3,12 @@
  * Provides getCSRFToken function required by admin-new-v2.js
  */
 
+// Prevent duplicate loading
+if (window.csrfUtilsLoaded) {
+  console.log('[CSRF] CSRF utilities already loaded, skipping...');
+} else {
+  window.csrfUtilsLoaded = true;
+
 // Global CSRF token cache
 let globalCsrfToken = null;
 
@@ -82,3 +88,5 @@ window.clearCSRFToken = clearCSRFToken;
 window.authenticatedFetch = authenticatedFetch;
 
 console.log('[CSRF] CSRF utilities loaded');
+
+} // End of duplicate loading prevention
