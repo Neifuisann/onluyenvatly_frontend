@@ -1,12 +1,18 @@
 /**
  * Admin New V2 - Modern Split-Screen Editor
  * ES6 Class-based Architecture with Advanced Features
- * 
+ *
  * @author Claude Code
  * @version 2.0.0
  */
 
 'use strict';
+
+// Prevent duplicate loading
+if (window.adminEditorV2Loaded) {
+  console.log('[AdminEditor] Admin Editor V2 already loaded, skipping...');
+} else {
+  window.adminEditorV2Loaded = true;
 
 // === Utility Classes ===
 
@@ -40,12 +46,26 @@ class NotificationManager {
         this.container = document.getElementById('notification-container');
         this.notifications = new Map();
         this.idCounter = 0;
+
+        // Handle missing container gracefully
+        if (!this.container) {
+            console.warn('[NotificationManager] notification-container element not found. Notifications will be disabled.');
+            this.disabled = true;
+        } else {
+            this.disabled = false;
+        }
     }
 
     show(type, title, message, duration = 5000) {
+        // If disabled, log to console instead
+        if (this.disabled || !this.container) {
+            console.log(`[Notification ${type.toUpperCase()}] ${title}: ${message}`);
+            return -1;
+        }
+
         const id = ++this.idCounter;
         const notification = this.createNotification(id, type, title, message);
-        
+
         this.container.appendChild(notification);
         this.notifications.set(id, notification);
 
@@ -420,11 +440,15 @@ class CodeMirrorManager {
     initialize(initialContent = '') {
         const textarea = document.getElementById(this.textareaId);
         if (!textarea) {
-            throw new Error(`Textarea with id "${this.textareaId}" not found`);
+            const error = new Error(`Textarea with id "${this.textareaId}" not found`);
+            console.error('[CodeMirrorManager]', error.message);
+            throw error;
         }
 
         if (typeof CodeMirror === 'undefined') {
-            throw new Error('CodeMirror library not loaded');
+            const error = new Error('CodeMirror library not loaded');
+            console.error('[CodeMirrorManager]', error.message);
+            throw error;
         }
 
         // Setup custom key bindings
@@ -808,6 +832,14 @@ class PreviewManager {
             warnings: 0,
             errors: 0
         };
+
+        // Handle missing container gracefully
+        if (!this.container) {
+            console.warn(`[PreviewManager] Container element with id "${containerId}" not found. Preview will be disabled.`);
+            this.disabled = true;
+        } else {
+            this.disabled = false;
+        }
     }
 
     initialize() {
@@ -875,20 +907,29 @@ class PreviewManager {
 
     updatePreview(questions) {
         this.currentQuestions = questions || [];
-        
+
+        // If disabled, just log and return
+        if (this.disabled || !this.container) {
+            console.log('[PreviewManager] Preview disabled, skipping update');
+            return;
+        }
+
         if (!questions || questions.length === 0) {
             this.showPlaceholder();
-            this.updateValidationStats({ valid: 0, warnings: 0, errors: 0 });
             return;
         }
 
         this.container.innerHTML = '';
         this.renderQuestions(questions);
-        this.updateValidationStats(this.calculateValidationStats(questions));
         this.renderMath();
     }
 
     showPlaceholder() {
+        if (this.disabled || !this.container) {
+            console.log('[PreviewManager] Preview disabled, skipping placeholder');
+            return;
+        }
+
         this.container.innerHTML = `
             <div class="preview-placeholder">
                 <div class="placeholder-icon">
@@ -943,20 +984,33 @@ class PreviewManager {
         const questionText = this.processContent(question.question);
         
         let html = `
-            <div class="question-header">
-                <div class="question-number">Câu ${questionNumber}</div>
-                <div class="question-text">${questionText}</div>
-                <div class="question-actions">
-                    <button class="question-action-btn" title="Chỉnh sửa" data-action="edit">
-                        <i class="fas fa-edit"></i>
+            <div class="question-metadata">
+                <div class="question-label">Câu ${questionNumber}.</div>
+                <div class="question-controls">
+                    <button class="audio-button">
+                        Nhập điểm
                     </button>
-                    <button class="question-action-btn" title="Sao chép" data-action="copy">
-                        <i class="fas fa-copy"></i>
+                    <button class="audio-button">
+                        <i class="fas fa-volume-up"></i> Audio
                     </button>
-                    <button class="question-action-btn" title="Xóa" data-action="delete">
-                        <i class="fas fa-trash"></i>
+                    <select class="question-dropdown">
+                        <option value="trac-nghiem">Trắc nghiệm</option>
+                        <option value="dung-sai">Đúng/Sai</option>
+                        <option value="dien-vao">Điền vào</option>
+                    </select>
+                    <button class="audio-button">
+                        <i class="fas fa-tag"></i>
+                    </button>
+                    <button class="audio-button">
+                        <i class="fas fa-exchange-alt"></i> Đổi câu khác
+                    </button>
+                    <button class="audio-button">
+                        <i class="fas fa-ellipsis-v"></i>
                     </button>
                 </div>
+            </div>
+            <div class="question-content">
+                <div class="question-text">${questionText}</div>
             </div>
         `;
 
@@ -1105,37 +1159,6 @@ class PreviewManager {
         });
         
         return stats;
-    }
-
-    updateValidationStats(stats) {
-        this.validationStats = stats;
-        
-        // Update UI elements
-        const validElement = document.getElementById('valid-questions');
-        const warningElement = document.getElementById('warning-questions');
-        const errorElement = document.getElementById('error-questions');
-        
-        if (validElement) validElement.textContent = stats.valid;
-        if (warningElement) warningElement.textContent = stats.warnings;
-        if (errorElement) errorElement.textContent = stats.errors;
-        
-        // Update status text
-        const statusElement = document.getElementById('validation-status');
-        if (statusElement) {
-            const statusText = statusElement.querySelector('.status-text');
-            if (statusText) {
-                if (stats.errors > 0) {
-                    statusText.textContent = `${stats.errors} lỗi cần sửa`;
-                    statusText.className = 'status-text text-error';
-                } else if (stats.warnings > 0) {
-                    statusText.textContent = `${stats.warnings} cảnh báo`;
-                    statusText.className = 'status-text text-warning';
-                } else {
-                    statusText.textContent = 'Tất cả câu hỏi hợp lệ';
-                    statusText.className = 'status-text text-success';
-                }
-            }
-        }
     }
 
     validateQuestions() {
@@ -1430,7 +1453,9 @@ class AdminEditorV2 {
     async loadLessonContent(lessonId) {
         try {
             console.log('🔍 Loading lesson content for ID:', lessonId);
-            const response = await fetch(`/api/lessons/${lessonId}`);
+            const response = await fetch(`http://localhost:3003/api/lessons/${lessonId}`, {
+                credentials: 'include'
+            });
             if (!response.ok) {
                 throw new Error('Failed to load lesson content');
             }
@@ -1964,7 +1989,7 @@ D. Cả nước được giải phóng và tiến lên xây dựng chủ nghĩa 
             // Get CSRF token before making the request
             const csrfToken = await getCSRFToken();
 
-            const response = await fetch('/api/admin/upload-document', {
+            const response = await fetch('http://localhost:3003/api/admin/upload-document', {
                 method: 'POST',
                 headers: {
                     'x-csrf-token': csrfToken
@@ -2173,7 +2198,7 @@ D. Cả nước được giải phóng và tiến lên xây dựng chủ nghĩa 
             const csrfToken = await getCSRFToken();
             console.log('CSRF token obtained:', csrfToken ? 'Yes' : 'No', csrfToken?.substring(0, 8) + '...');
 
-            const response = await fetch('/api/admin/upload-image', {
+            const response = await fetch('http://localhost:3003/api/admin/upload-image', {
                 method: 'POST',
                 headers: {
                     'x-csrf-token': csrfToken
@@ -2204,7 +2229,7 @@ D. Cả nước được giải phóng và tiến lên xây dựng chủ nghĩa 
 
     async loadImageGallery() {
         try {
-            const response = await fetch('/api/gallery/');
+            const response = await fetch('http://localhost:3003/api/gallery/');
             const result = await response.json();
             
             const galleryContainer = document.querySelector('.image-gallery');
@@ -2438,3 +2463,5 @@ if (typeof module !== 'undefined' && module.exports) {
         ResizeManager
     };
 }
+
+} // End of duplicate loading prevention
